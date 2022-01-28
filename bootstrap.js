@@ -175,73 +175,104 @@ function updateElements($parent, newNodes, oldNodes) {
   });
 }
 
-function attachVdom({ render, target, initState }) {
-    let prevContents = [];
-    let prevState = {};
-    const getTarget = () => {
-      if (typeof target === 'string') { return document.querySelector(target); }
-      if (typeof target === 'function') { return target(); }
-      if (!target) {
-        target = document.createElement('div');
-        document.body.appendChild(target);
-      }
-      return target;
-    };
-    const update = (stateChanges) => {
-      const nextState = { ...prevState, ...stateChanges };
-      const content = render(update, nextState);
-      const contents = [].concat(content);
-      updateElements(getTarget(), contents, prevContents);
-      prevContents = contents;
-      prevState = nextState;
-    };
-    update(initState || {});
+function makeComponent(render, initState, target) {
+  let prevState = {};
+  let prevContent = null;
+  const getElement = (ref) => {
+    const element =
+      (typeof ref === 'string'  ) ? document.querySelector(ref) :
+      (typeof ref === 'function') ? ref() : ref;
+    return element || document.createElement('div');
+  };
+  const setTarget = (newTarget) => {
+    target = getElement(newTarget);
+  };
+  const getTarget = () => target;
+  const update = (state = prevState) => {
+    const content = render(state, update);
+    if (Array.isArray(content)) {
+      updateElements(target, content, prevContent || []);
+    } else {
+      updateElement(target, content, prevContent);
+    }
+    prevContent = content;
+    prevState = state;
+  };
+  const appendTo = (parent) => {
+    getElement(parent).appendChild(target);
+  }
+  setTarget(target);
+  if (initState) { update(initState); }
+  return { getTarget, setTarget, appendTo, update };
 }
+
+function Component(render, defaultState, defaultTarget) {
+  return ({ target, state } = {}) => makeComponent(
+    render,
+    state || defaultState,
+    target || defaultTarget
+  );
+}
+
 
 //---------------------------------------------------------
 
-const CssEditor = {
-  target: document.body,
-  initState: {
-    css: (`
-      textarea {
-        outline: none;
-        font-size: 13px;
-        font-family: monospace;
-        color: #004444;
-        background-color: #F8F8F8;
-        border: 3px solid #4488AA;
-        border-radius: 8px;
-        padding: 8px;
-        display: flex;
-        resize: none;
-      }
-    `).replace(/\n\s{6}/g, '\n').trim()
-  },
-  render: (update, { css }) => {
-    const head = document.getElementsByTagName('head')[0];
-    let styleTag = head.getElementsByTagName('style')[0];
-    if (!styleTag) {
-      styleTag = document.createElement('style');
-      head.appendChild(styleTag);
-    }
-    styleTag.innerHTML = css;
-    const lines = css.split('\n');
-    const cols = Math.max(...lines.map(L => L.length));
-    const rows = lines.length;
-    return [
+const CssEditor = Component(({ css }, update) => {
+  const head = document.getElementsByTagName('head')[0];
+  let styleTag = head.getElementsByTagName('style')[0];
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    head.appendChild(styleTag);
+  }
+  styleTag.innerHTML = css;
+  const lines = css.split('\n');
+  const cols = Math.max(...lines.map(L => L.length));
+  const rows = lines.length;
+  return (
+    h('div', { className: 'css-editor' },
+      h('p', {}, 'Global CSS:'),
       h('textarea', {
         rows, cols,
-        oninput: (e) => {
+        onInput: (e) => {
           console.log('oninput');
           css = e.target.value;
           update({ css });
         }
       }, css)
-    ];
-  }
-};
+    )
+  );
+}, {
+  css: (`
+    .css-editor {
+      border-radius: 4px;
+      border: solid 2px #CCCCCC;
+      background-color: #FDFDFD;
+      width: min-content;
+      height: min-content;
+      padding: 5px;
+    }
+    
+    .css-editor p {
+      margin: 0;
+      margin-bottom: 5px;
+      margin-left: 2px;
+    }
+    
+    .css-editor textarea {
+      outline: none;
+      font-size: 13px;
+      font-family: monospace;
+      color: #004444;
+      background-color: #F8F8F8;
+      border: 3px solid #4488AA;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      resize: none;
+    }
+  `).replace(/\n\s{4}/g, '\n').trim()
+});
 
 window.onload = () => {
-  attachVdom(CssEditor);
+  CssEditor().appendTo(document.body);
 };
