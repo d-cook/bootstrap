@@ -24,7 +24,7 @@ function extractEventName(name) {
 }
 
 function isCustomProp(name) {
-  return name === 'key';
+  return ['key', 'component', 'state'].includes(name);
 }
 
 function setProp($target, name, value) {
@@ -90,6 +90,10 @@ function updateProps($target, newProps, oldProps = {}) {
 function createElement(node) {
   if (typeof node === 'string') {
     return document.createTextNode(node);
+  } else if (typeof node.type === 'function') {
+    const target = document.createElement('vdom-component-wrapper');
+    node.component = node.type({ state: node.props.state, target });
+    return node.component.getTarget();
   }
   const $el = document.createElement(node.type);
   setProps($el, node.props);
@@ -127,6 +131,9 @@ function updateElement($parent, newNode, oldNode, index = 0) {
       createElement(newNode),
       $parent.childNodes[index]
     );
+  } else if (typeof newNode.type === 'function') {
+    newNode.component = oldNode.component;
+    newNode.component.update(newNode.props.state);
   } else if (newNode.type) {
     updateProps(
       $parent.childNodes[index],
@@ -214,8 +221,8 @@ function Component(render, defaultState, defaultTarget) {
   );
 }
 
-
 //---------------------------------------------------------
+//UI APP
 
 const CssEditor = Component(({ css }, update) => {
   const head = document.getElementsByTagName('head')[0];
