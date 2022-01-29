@@ -395,7 +395,7 @@ const getType = (value) => {
   const type = typeof value;
   if (type === 'string' || type === 'number') { return type; }
   if (type === 'boolean') { return 'bool'; }
-  if (!value) { return null; }
+  if (!value) { return 'null'; }
   if (Array.isArray(value)) { return 'list'; }
   return 'record';
 }
@@ -426,7 +426,7 @@ const valueVdom = (value, input, update) => {
     }
     return JSON.stringify(v);
   };
-  if (typeof input !== 'string') {
+  if (getType(input) === 'null') {
     input = getInput(value);
   }
   if (type === 'list') {
