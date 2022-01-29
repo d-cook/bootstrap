@@ -276,12 +276,11 @@ body {
   background-color: #FDFDFD;
   width: min-content;
   height: min-content;
-  padding: 5px;
+  padding: 0;
 }
 
 .css-editor p {
   margin: 0;
-  margin-bottom: 5px;
   margin-left: 2px;
 }
 
@@ -291,9 +290,9 @@ body {
   font-family: monospace;
   color: #004444;
   background-color: #F8F8F8;
-  border: 3px solid #4488AA;
-  border-radius: 8px;
-  padding: 8px;
+  border: none;
+  border-top: 2px solid #CCCCCC;
+  padding: 2px;
   display: flex;
   resize: none;
 }
