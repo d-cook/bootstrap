@@ -2,6 +2,11 @@
 //VDOM
 
 function h(type, props, ...children) {
+  if (typeof type === 'function') {
+    const constructor = type;
+    type = 'vdom-component';
+    return { type, props: props || {}, children, constructor };
+  }
   return { type, props: props || {}, children };
 }
 
@@ -24,7 +29,7 @@ function extractEventName(name) {
 }
 
 function isCustomProp(name) {
-  return ['key', 'component', 'state', 'stateChanges'].includes(name);
+  return ['key', 'component', 'initState'].includes(name);
 }
 
 function setProp($target, name, value) {
@@ -90,13 +95,9 @@ function updateProps($target, newProps, oldProps = {}) {
 function createElement(node) {
   if (typeof node === 'string') {
     return document.createTextNode(node);
-  } else if (typeof node.type === 'function') {
-    const target = document.createElement('vdom-component-wrapper');
-    node.component = node.type({
-      state: node.props.state,
-      stateChanges: node.props.stateChanges,
-      target
-    });
+  } else if (node.type === 'vdom-component') {
+    const target = document.createElement('vdom-component');
+    node.component = node.constructor({ state: node.props.initState, target });
     return node.component.getTarget();
   }
   const $el = document.createElement(node.type);
@@ -110,7 +111,8 @@ function createElement(node) {
 function hasChanged(node1, node2) {
   return typeof node1 !== typeof node2 ||
          typeof node1 === 'string' && node1 !== node2 ||
-         node1.type !== node2.type;
+         node1.type !== node2.type ||
+         node1.constructor !== node2.constructor;
 }
 
 function updateElement($parent, newNode, oldNode, index = 0) {
@@ -135,9 +137,9 @@ function updateElement($parent, newNode, oldNode, index = 0) {
       createElement(newNode),
       $parent.childNodes[index]
     );
-  } else if (typeof newNode.type === 'function') {
+  } else if (newNode.type === 'vdom-component') {
     newNode.component = oldNode.component;
-    newNode.component.update(newNode.props.state, newNode.props.stateChanges);
+    newNode.component.update();
   } else if (newNode.type) {
     updateProps(
       $parent.childNodes[index],
@@ -199,8 +201,8 @@ function makeComponent(render, initState, target) {
     target = getElement(newTarget);
   };
   const getTarget = () => target;
-  const update = (state, stateChanges = {}) => {
-    state = { ...(state || prevState), ...stateChanges };
+  const update = (state) => {
+    state = state || prevState;
     const content = render(state, update);
     if (Array.isArray(content)) {
       updateElements(target, content, prevContent || []);
@@ -219,9 +221,9 @@ function makeComponent(render, initState, target) {
 }
 
 function Component(render, defaultState, defaultTarget) {
-  return ({ target, state, stateChanges } = {}) => makeComponent(
+  return ({ target, state } = {}) => makeComponent(
     render,
-    { ...(state || defaultState), ...stateChanges },
+    state || defaultState,
     target || defaultTarget
   );
 }
