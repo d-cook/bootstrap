@@ -200,7 +200,7 @@ function makeComponent(render, initState, target) {
     const element =
       (typeof ref === 'string'  ) ? document.querySelector(ref) :
       (typeof ref === 'function') ? ref() : ref;
-    return element || document.createElement('div');
+    return element || document.createElement('vdom-component');
   };
   const setTarget = (newTarget) => {
     target = getElement(newTarget);
