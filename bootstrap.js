@@ -476,7 +476,7 @@ const valueVdom = (value, input, update) => {
       k = (k || '') + String.fromCharCode(A + Math.floor(Math.random() * 26));
       return keys.includes(k) ? newKey(keys, k) : k;
     };
-    const keyInputSize = Math.max(...Object.values(input).map(kv => kv.key.length));
+    const keyInputSize = Math.max(1, ...Object.values(input).map(kv => kv.key.length));
     return h('div', { className: 'record-editor' },
       Object.entries(value).map(([k, v], i) =>
         h('div', { key: i },
