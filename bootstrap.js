@@ -265,9 +265,13 @@ const CssEditor = Component(({ css }, update) => {
 body {
   display: grid;
   grid-template-columns:
-    1fr 1fr 1fr 1fr 1fr;
+    1fr 1fr 1fr 1fr;
   column-gap: 8px;
   row-gap: 8px;
+}
+
+body > :first-child {
+  grid-row: 1 / 99;
 }
 
 .css-editor {
@@ -325,6 +329,7 @@ body {
 
 .add-button:first-child {
   margin-left: -4px;
+  margin-top: -3px;
 }
 
 .value-editor {
@@ -401,11 +406,11 @@ const getType = (value) => {
 }
 
 const removeItem = (items, i) => {
-  return items.slice(0, i).concat(items.slice(i + 1));
+  items.splice(i, 1); return items;
 };
 
 const insertItem = (items, i, item) => {
-  return items.slice(0, i).concat(item).concat(items.slice(i));
+  items.splice(i, 0, item); return items;
 };
 
 const xButton = (onClick) => {
@@ -448,8 +453,8 @@ const valueVdom = (value, input, update) => {
       h('button', {
         className: 'add-button',
         onClick: (e) => {
-          value = value.concat(null);
-          input = input.concat('null');
+          value.push(null);
+          input.push('null');
           update({ value, input });
         }
       }, '+')
@@ -458,16 +463,15 @@ const valueVdom = (value, input, update) => {
   if (type === 'record') {
     const saveKeys = () => {
       setTimeout(() => {
-        value = Object.fromEntries(
-          Object.entries(value).map(([key, val]) =>
-            [input[key].key, val]
-          )
-        );
-        input = Object.fromEntries(
-          Object.entries(input).map(([key, val]) =>
-            [input[key].key, val]
-          )
-        );
+        Object.entries(input)
+          .filter(([k, v]) => v.key !== k)
+          .forEach(([k, v]) => {
+            const val = value[k];
+            delete value[k];
+            delete input[k];
+            value[v.key] = val;
+            input[v.key] = v;
+          });
         update({ value, input });
       });
     };
@@ -562,9 +566,15 @@ const ValueEditor = Component(({ value, input }, update) => {
 
 window.onload = () => {
   CssEditor().appendTo(document.body);
-  ValueEditor({
-    state: {
-      value: [1,2,{x:3,y:[4,5],z:'six'},'seven','eight',{},[]]
-    }
-  }).appendTo(document.body);
+  var list = [4,5];
+  var obj = {w:'six'};
+  var xyz = {x:3,y:list,z:obj};
+  var value = [1,2,xyz,'seven','eight'];
+  ValueEditor({ state: { value } }).appendTo(document.body);
+  var editors = [value,xyz,list,obj].map(v => {
+    var ve = ValueEditor({ state: { value: v } });
+    ve.appendTo(document.body);
+    return ve;
+  });
+  setInterval(() => editors.forEach(e => e.update()), 200);
 };
