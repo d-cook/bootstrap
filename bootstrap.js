@@ -417,124 +417,28 @@ const xButton = (onClick) => {
   return h('button', { className: 'x-button', onClick }, 'X')
 };
 
-const valueVdom = (value, input, update) => {
+const getEditorInputState = (value) => {
   const type = getType(value);
-  const getInput = (v) => {
-    const type = getType(v);
-    if (type === 'list') { return v.map(getInput); }
-    if (type === 'record') {
-      return Object.fromEntries(
-        Object.entries(v).map(([key, val]) =>
-          [key, { key, val: getInput(val) }]
-        )
-      );
-    }
-    return JSON.stringify(v);
-  };
-  if (getType(input) === 'null') {
-    input = getInput(value);
-  }
-  if (type === 'list') {
-    return h('div', { className: 'list-editor' },
-      value.map((v, i) =>
-        h('div', { key: i },
-          xButton(() => {
-            value = removeItem(value, i);
-            input = removeItem(input, i);
-            update({ value, input });
-          }),
-          valueVdom(v, input[i], (state) => {
-            value[i] = state.value;
-            input[i] = state.input;
-            update({ value, input });
-          })
-        )
-      ),
-      h('button', {
-        className: 'add-button',
-        onClick: (e) => {
-          value.push(null);
-          input.push('null');
-          update({ value, input });
-        }
-      }, '+')
-    );
-  }
+  if (type === 'list') { return value.map(getEditorInputState); }
   if (type === 'record') {
-    const saveKeys = () => {
-      setTimeout(() => {
-        Object.entries(input)
-          .filter(([k, v]) => v.key !== k)
-          .forEach(([k, v]) => {
-            const val = value[k];
-            delete value[k];
-            delete input[k];
-            value[v.key] = val;
-            input[v.key] = v;
-          });
-        update({ value, input });
-      });
-    };
-    const newKey = (keys, k) => {
-      const A = (Math.random() < 0.5) ? 65 : 97;
-      k = (k || '') + String.fromCharCode(A + Math.floor(Math.random() * 26));
-      return keys.includes(k) ? newKey(keys, k) : k;
-    };
-    const keyInputSize = Math.max(1, ...Object.values(input).map(kv => kv.key.length));
-    return h('div', { className: 'record-editor' },
-      Object.entries(value).map(([k, v], i) =>
-        h('div', { key: i },
-          xButton(() => {
-            delete value[k];
-            delete input[k];
-            update({ value, input });
-          }),
-          h('input', {
-            className: 'key-editor',
-            type: 'text',
-            value: input[k].key,
-            size: keyInputSize,
-            onInput: (e) => {
-              input[k].key = e.target.value;
-              update({ value, input });
-            },
-            onBlur: saveKeys,
-            onKeyUp: ({ key }) => {
-              if (key === 'Enter') { saveKeys(); }
-              if (key === 'Escape') {
-                input[k].key = k;
-                update({ value, input });
-              }
-            }
-          }),
-          ':',
-          valueVdom(v, input[k].val, (state) => {
-            value[k] = state.value;
-            input[k].val = state.input;
-            update({ value, input });
-          })
-        )
-      ),
-      h('button', {
-        className: 'add-button',
-        onClick: (e) => {
-          const key = newKey(Object.keys(value));
-          value[key] = null;
-          input[key] = { key, val: 'null' };
-          update({ value, input });
-        }
-      }, '+')
+    return Object.fromEntries(
+      Object.entries(value).map(([key, val]) =>
+        [key, { key, val: getEditorInputState(val) }]
+      )
     );
   }
+  return JSON.stringify(value);
+};
+
+const singleValueEditor = (value, input, update) => {
   if (typeof input !== 'string') { input = value; }
   const save = () => {
     setTimeout(() => {
-      try {
-        if (JSON.stringify(value) === input) { return; }
-        value = JSON.parse(input);
-      } catch(ex) { }
-      input = getInput(value);
-      update({ value, input });
+      if (JSON.stringify(value) !== input) {
+        try { value = JSON.parse(input); } catch(ex) { }
+        input = getEditorInputState(value);
+        update({ value, input });
+      }
     });
   };
   let isValid = false;
@@ -558,10 +462,115 @@ const valueVdom = (value, input, update) => {
       }
     }
   });
+};
+
+const listEditor = (value, input, update) => {
+  return h('div', { className: 'list-editor' },
+    value.map((v, i) =>
+      h('div', { key: i },
+        xButton(() => {
+          value = removeItem(value, i);
+          input = removeItem(input, i);
+          update({ value, input });
+        }),
+        anyValueEditor(v, input[i], (state) => {
+          value[i] = state.value;
+          input[i] = state.input;
+          update({ value, input });
+        })
+      )
+    ),
+    h('button', {
+      className: 'add-button',
+      onClick: (e) => {
+        value.push(null);
+        input.push('null');
+        update({ value, input });
+      }
+    }, '+')
+  );
+};
+
+const recordEditor = (value, input, update) => {
+  const saveKeys = () => {
+    setTimeout(() => {
+      Object.entries(input)
+        .filter(([k, v]) => v.key !== k)
+        .forEach(([k, v]) => {
+          const val = value[k];
+          delete value[k];
+          delete input[k];
+          value[v.key] = val;
+          input[v.key] = v;
+        });
+      update({ value, input });
+    });
+  };
+  const newKey = (keys, k) => {
+    const A = (Math.random() < 0.5) ? 65 : 97;
+    k = (k || '') + String.fromCharCode(A + Math.floor(Math.random() * 26));
+    return keys.includes(k) ? newKey(keys, k) : k;
+  };
+  const keyInputSize = Math.max(1, ...Object.values(input).map(kv => kv.key.length));
+  return h('div', { className: 'record-editor' },
+    Object.entries(value).map(([k, v], i) =>
+      h('div', { key: i },
+        xButton(() => {
+          delete value[k];
+          delete input[k];
+          update({ value, input });
+        }),
+        h('input', {
+          className: 'key-editor',
+          type: 'text',
+          value: input[k].key,
+          size: keyInputSize,
+          onInput: (e) => {
+            input[k].key = e.target.value;
+            update({ value, input });
+          },
+          onBlur: saveKeys,
+          onKeyUp: ({ key }) => {
+            if (key === 'Enter') { saveKeys(); }
+            if (key === 'Escape') {
+              input[k].key = k;
+              update({ value, input });
+            }
+          }
+        }),
+        ':',
+        anyValueEditor(v, input[k].val, (state) => {
+          value[k] = state.value;
+          input[k].val = state.input;
+          update({ value, input });
+        })
+      )
+    ),
+    h('button', {
+      className: 'add-button',
+      onClick: (e) => {
+        const key = newKey(Object.keys(value));
+        value[key] = null;
+        input[key] = { key, val: 'null' };
+        update({ value, input });
+      }
+    }, '+')
+  );
+};
+
+const anyValueEditor = (value, input, update) => {
+  const type = getType(value);
+  if (getType(input) === 'null') {
+    input = getEditorInputState(value);
+  }
+  const editor =
+    (type === 'list'  ) ? listEditor :
+    (type === 'record') ? recordEditor : singleValueEditor;
+  return editor(value, input, update);
 }
 
 const ValueEditor = Component(({ value, input }, update) => {
-  return valueVdom(value, input, update);
+  return anyValueEditor(value, input, update);
 }, { value: null });
 
 window.onload = () => {
