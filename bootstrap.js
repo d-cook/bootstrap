@@ -24,7 +24,7 @@ function extractEventName(name) {
 }
 
 function isCustomProp(name) {
-  return ['key', 'component', 'state'].includes(name);
+  return ['key', 'component', 'state', 'stateChanges'].includes(name);
 }
 
 function setProp($target, name, value) {
@@ -92,7 +92,11 @@ function createElement(node) {
     return document.createTextNode(node);
   } else if (typeof node.type === 'function') {
     const target = document.createElement('vdom-component-wrapper');
-    node.component = node.type({ state: node.props.state, target });
+    node.component = node.type({
+      state: node.props.state,
+      stateChanges: node.props.stateChanges,
+      target
+    });
     return node.component.getTarget();
   }
   const $el = document.createElement(node.type);
@@ -133,7 +137,7 @@ function updateElement($parent, newNode, oldNode, index = 0) {
     );
   } else if (typeof newNode.type === 'function') {
     newNode.component = oldNode.component;
-    newNode.component.update(newNode.props.state);
+    newNode.component.update(newNode.props.state, newNode.props.stateChanges);
   } else if (newNode.type) {
     updateProps(
       $parent.childNodes[index],
@@ -195,7 +199,8 @@ function makeComponent(render, initState, target) {
     target = getElement(newTarget);
   };
   const getTarget = () => target;
-  const update = (state = prevState) => {
+  const update = (state, stateChanges = {}) => {
+    state = { ...(state || prevState), ...stateChanges };
     const content = render(state, update);
     if (Array.isArray(content)) {
       updateElements(target, content, prevContent || []);
@@ -214,9 +219,9 @@ function makeComponent(render, initState, target) {
 }
 
 function Component(render, defaultState, defaultTarget) {
-  return ({ target, state } = {}) => makeComponent(
+  return ({ target, state, stateChanges } = {}) => makeComponent(
     render,
-    state || defaultState,
+    { ...(state || defaultState), ...stateChanges },
     target || defaultTarget
   );
 }
