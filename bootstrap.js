@@ -1,7 +1,12 @@
 //------------------------------------------------
 //VDOM
 
+function flatten(value) {
+  return Array.isArray(value) ? [].concat(...value.map(flatten)) : value;
+};
+
 function h(type, props, ...children) {
+  children = flatten(children);
   if (typeof type === 'function') {
     const constructor = type;
     type = 'vdom-component';
@@ -203,8 +208,9 @@ function makeComponent(render, initState, target) {
   const getTarget = () => target;
   const update = (state) => {
     state = state || prevState;
-    const content = render(state, update);
+    let content = render(state, update);
     if (Array.isArray(content)) {
+      content = flatten(content);
       updateElements(target, content, prevContent || []);
     } else {
       updateElement(target, content, prevContent);
@@ -257,34 +263,34 @@ const CssEditor = Component(({ css }, update) => {
   );
 }, {
   css: (`
-    .css-editor {
-      border-radius: 4px;
-      border: solid 2px #CCCCCC;
-      background-color: #FDFDFD;
-      width: min-content;
-      height: min-content;
-      padding: 5px;
-    }
-    
-    .css-editor p {
-      margin: 0;
-      margin-bottom: 5px;
-      margin-left: 2px;
-    }
-    
-    .css-editor textarea {
-      outline: none;
-      font-size: 13px;
-      font-family: monospace;
-      color: #004444;
-      background-color: #F8F8F8;
-      border: 3px solid #4488AA;
-      border-radius: 8px;
-      padding: 8px;
-      display: flex;
-      resize: none;
-    }
-  `).replace(/\n\s{4}/g, '\n').trim()
+.css-editor {
+  border-radius: 4px;
+  border: solid 2px #CCCCCC;
+  background-color: #FDFDFD;
+  width: min-content;
+  height: min-content;
+  padding: 5px;
+}
+
+.css-editor p {
+  margin: 0;
+  margin-bottom: 5px;
+  margin-left: 2px;
+}
+
+.css-editor textarea {
+  outline: none;
+  font-size: 13px;
+  font-family: monospace;
+  color: #004444;
+  background-color: #F8F8F8;
+  border: 3px solid #4488AA;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  resize: none;
+}
+  `).trim()
 });
 
 window.onload = () => {
