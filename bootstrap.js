@@ -254,7 +254,6 @@ const CssEditor = Component(({ css }, update) => {
       h('textarea', {
         rows, cols,
         onInput: (e) => {
-          console.log('oninput');
           css = e.target.value;
           update({ css });
         }
@@ -263,6 +262,14 @@ const CssEditor = Component(({ css }, update) => {
   );
 }, {
   css: (`
+body {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr 1fr 1fr 1fr;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+
 .css-editor {
   border-radius: 4px;
   border: solid 2px #CCCCCC;
@@ -290,9 +297,275 @@ const CssEditor = Component(({ css }, update) => {
   display: flex;
   resize: none;
 }
+
+.x-button {
+  position: absolute;
+  border: solid 1px red;
+  border-radius: 10px;
+  padding: 2px;
+  background-color: red;
+  font-weight: bold;
+  font-size: 10px;
+  color: white;
+  line-height: 0.7;
+  margin-left: -5px;
+  margin-top: -4px;
+}
+
+.add-button {
+  border: none;
+  border-radius: 4px;
+  background-color: #AAAAAA;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 0.8;
+  min-width: 40px;
+  padding: 0;
+}
+
+.add-button:first-child {
+  margin-left: -4px;
+}
+
+.value-editor {
+  font-family: monospace;
+  border: solid 2px black;
+  border-radius: 4px;
+}
+
+.key-editor {
+  font-family: monospace;
+  border: solid 2px black;
+  border-radius: 4px;
+}
+
+.list-editor {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+  width: min-content;
+  padding: 8px 4px 4px 8px;
+  border: 2px solid #8888CC;
+  background-color: #EEEEFF;
+  border-radius: 6px;
+}
+
+.list-editor .value-editor {
+  padding-left: 5px;
+}
+
+.list-editor > .add-button {
+  background-color: blue;
+}
+
+.record-editor {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+  width: min-content;
+  padding: 8px 4px 4px 8px;
+  border: 2px solid #88CC88;
+  background-color: #EEFFEE;
+  border-radius: 6px;
+}
+
+.record-editor > div {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+  column-gap: 2px;
+}
+
+.record-editor .value-editor {
+  padding-left: 5px;
+}
+
+.record-editor > .add-button {
+  background-color: green;
+}
+
+.error {
+  color: #880000;
+  background-color: #FFCCCC;
+}
   `).trim()
 });
 
+const getType = (value) => {
+  const type = typeof value;
+  if (type === 'string' || type === 'number') { return type; }
+  if (type === 'boolean') { return 'bool'; }
+  if (!value) { return null; }
+  if (Array.isArray(value)) { return 'list'; }
+  return 'record';
+}
+
+const removeItem = (items, i) => {
+  return items.slice(0, i).concat(items.slice(i + 1));
+};
+
+const insertItem = (items, i, item) => {
+  return items.slice(0, i).concat(item).concat(items.slice(i));
+};
+
+const xButton = (onClick) => {
+  return h('button', { className: 'x-button', onClick }, 'X')
+};
+
+const valueVdom = (value, input, update) => {
+  const type = getType(value);
+  const getInput = (v) => {
+    const type = getType(v);
+    if (type === 'list') { return v.map(getInput); }
+    if (type === 'record') {
+      return Object.fromEntries(
+        Object.entries(v).map(([key, val]) =>
+          [key, { key, val: getInput(val) }]
+        )
+      );
+    }
+    return JSON.stringify(v);
+  };
+  if (typeof input !== 'string') {
+    input = getInput(value);
+  }
+  if (type === 'list') {
+    return h('div', { className: 'list-editor' },
+      value.map((v, i) =>
+        h('div', { key: i },
+          xButton(() => {
+            value = removeItem(value, i);
+            input = removeItem(input, i);
+            update({ value, input });
+          }),
+          valueVdom(v, input[i], (state) => {
+            value[i] = state.value;
+            input[i] = state.input;
+            update({ value, input });
+          })
+        )
+      ),
+      h('button', {
+        className: 'add-button',
+        onClick: (e) => {
+          value = value.concat(null);
+          input = input.concat('null');
+          update({ value, input });
+        }
+      }, '+')
+    );
+  }
+  if (type === 'record') {
+    const saveKeys = () => {
+      setTimeout(() => {
+        value = Object.fromEntries(
+          Object.entries(value).map(([key, val]) =>
+            [input[key].key, val]
+          )
+        );
+        input = Object.fromEntries(
+          Object.entries(input).map(([key, val]) =>
+            [input[key].key, val]
+          )
+        );
+        update({ value, input });
+      });
+    };
+    const newKey = (keys, k) => {
+      const A = (Math.random() < 0.5) ? 65 : 97;
+      k = (k || '') + String.fromCharCode(A + Math.floor(Math.random() * 26));
+      return keys.includes(k) ? newKey(keys, k) : k;
+    };
+    const keyInputSize = Math.max(...Object.values(input).map(kv => kv.key.length));
+    return h('div', { className: 'record-editor' },
+      Object.entries(value).map(([k, v], i) =>
+        h('div', { key: i },
+          xButton(() => {
+            delete value[k];
+            delete input[k];
+            update({ value, input });
+          }),
+          h('input', {
+            className: 'key-editor',
+            type: 'text',
+            value: input[k].key,
+            size: keyInputSize,
+            onInput: (e) => {
+              input[k].key = e.target.value;
+              update({ value, input });
+            },
+            onBlur: saveKeys,
+            onKeyUp: ({ key }) => {
+              if (key === 'Enter') { saveKeys(); }
+              if (key === 'Escape') {
+                input[k].key = k;
+                update({ value, input });
+              }
+            }
+          }),
+          ':',
+          valueVdom(v, input[k].val, (state) => {
+            value[k] = state.value;
+            input[k].val = state.input;
+            update({ value, input });
+          })
+        )
+      ),
+      h('button', {
+        className: 'add-button',
+        onClick: (e) => {
+          const key = newKey(Object.keys(value));
+          value[key] = null;
+          input[key] = { key, val: 'null' };
+          update({ value, input });
+        }
+      }, '+')
+    );
+  }
+  if (typeof input !== 'string') { input = value; }
+  const save = () => {
+    setTimeout(() => {
+      try {
+        if (JSON.stringify(value) === input) { return; }
+        value = JSON.parse(input);
+      } catch(ex) { }
+      input = getInput(value);
+      update({ value, input });
+    });
+  };
+  let isValid = false;
+  try { JSON.parse(input); isValid = true; }
+  catch(ex) { }
+  return h('input', {
+    className: (isValid) ? 'value-editor' : 'value-editor error',
+    type: 'text',
+    value: input,
+    size: Math.max(1, input.length),
+    onInput: (e) => {
+      input = e.target.value;
+      update({ value, input });
+    },
+    onBlur: save,
+    onKeyUp: ({ key }) => {
+      if (key === 'Enter') { save(); }
+      if (key === 'Escape') {
+        input = JSON.stringify(value);
+        save();
+      }
+    }
+  });
+}
+
+const ValueEditor = Component(({ value, input }, update) => {
+  return valueVdom(value, input, update);
+}, { value: null });
+
 window.onload = () => {
   CssEditor().appendTo(document.body);
+  ValueEditor({
+    state: {
+      value: [1,2,{x:3,y:[4,5],z:'six'},'seven','eight',{},[]]
+    }
+  }).appendTo(document.body);
 };
