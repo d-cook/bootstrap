@@ -550,7 +550,7 @@ const valueVdom = (value, input, update) => {
       if (key === 'Enter') { save(); }
       if (key === 'Escape') {
         input = JSON.stringify(value);
-        save();
+        update({ value, input });
       }
     }
   });
