@@ -383,6 +383,11 @@ body > :first-child {
   background-color: green;
 }
 
+.changed {
+  color: #004488;
+  background-color: #DDFFFF;
+}
+
 .error {
   color: #880000;
   background-color: #FFCCCC;
@@ -433,8 +438,10 @@ const rawStringEditor = (value, input, update) => {
       }
     });
   };
+  const isChanged = (input !== value);
   return h('input', {
-    className: 'value-editor',
+    className: 'value-editor' +
+      (isChanged ? ' changed' : ''),
     type: 'text',
     value: input,
     size: Math.max(1, input.length),
@@ -463,10 +470,12 @@ const jsonStringEditor = (value, input, update) => {
       }
     });
   };
-  let isValid = false;
-  try { JSON.parse(input); isValid = true; } catch(ex) { }
+  let isError = true;
+  try { JSON.parse(input); isError = false; } catch(ex) { }
+  const isChanged = !isError && (input !== JSON.stringify(value));
   return h('input', {
-    className: (isValid) ? 'value-editor' : 'value-editor error',
+    className: 'value-editor' +
+      (isError ? ' error' : isChanged ? ' changed' : ''),
     type: 'text',
     value: input,
     size: Math.max(1, input.length),
