@@ -338,12 +338,6 @@ body > :first-child {
   border-radius: 4px;
 }
 
-.key-editor {
-  font-family: monospace;
-  border: solid 2px black;
-  border-radius: 4px;
-}
-
 .list-editor {
   display: flex;
   flex-direction: column;
@@ -430,8 +424,36 @@ const getEditorInputState = (value) => {
   return JSON.stringify(value);
 };
 
-const singleValueEditor = (value, input, update) => {
+const rawStringEditor = (value, input, update) => {
   if (typeof input !== 'string') { input = value; }
+  const save = () => {
+    setTimeout(() => {
+      if (value !== input) {
+        update({ value: input, input });
+      }
+    });
+  };
+  return h('input', {
+    className: 'value-editor',
+    type: 'text',
+    value: input,
+    size: Math.max(1, input.length),
+    onInput: (e) => {
+      input = e.target.value;
+      update({ value, input });
+    },
+    onBlur: save,
+    onKeyUp: ({ key }) => {
+      if (key === 'Enter') { save(); }
+      if (key === 'Escape') {
+        update({ value, input: value });
+      }
+    }
+  });
+};
+
+const jsonStringEditor = (value, input, update) => {
+  if (typeof input !== 'string') { input = JSON.stringify(value); }
   const save = () => {
     setTimeout(() => {
       if (JSON.stringify(value) !== input) {
@@ -442,8 +464,7 @@ const singleValueEditor = (value, input, update) => {
     });
   };
   let isValid = false;
-  try { JSON.parse(input); isValid = true; }
-  catch(ex) { }
+  try { JSON.parse(input); isValid = true; } catch(ex) { }
   return h('input', {
     className: (isValid) ? 'value-editor' : 'value-editor error',
     type: 'text',
@@ -492,20 +513,6 @@ const listEditor = (value, input, update) => {
 };
 
 const recordEditor = (value, input, update) => {
-  const saveKeys = () => {
-    setTimeout(() => {
-      Object.entries(input)
-        .filter(([k, v]) => v.key !== k)
-        .forEach(([k, v]) => {
-          const val = value[k];
-          delete value[k];
-          delete input[k];
-          value[v.key] = val;
-          input[v.key] = v;
-        });
-      update({ value, input });
-    });
-  };
   const newKey = (keys, k) => {
     const A = (Math.random() < 0.5) ? 65 : 97;
     k = (k || '') + String.fromCharCode(A + Math.floor(Math.random() * 26));
@@ -520,23 +527,21 @@ const recordEditor = (value, input, update) => {
           delete input[k];
           update({ value, input });
         }),
-        h('input', {
-          className: 'key-editor',
-          type: 'text',
-          value: input[k].key,
-          size: keyInputSize,
-          onInput: (e) => {
-            input[k].key = e.target.value;
-            update({ value, input });
-          },
-          onBlur: saveKeys,
-          onKeyUp: ({ key }) => {
-            if (key === 'Enter') { saveKeys(); }
-            if (key === 'Escape') {
-              input[k].key = k;
-              update({ value, input });
-            }
+        rawStringEditor(k, input[k].key, (state) => {
+          input[k].key = state.input;
+          if (state.value !== k) {
+            Object.entries(input)
+              // Look for mismatch instead of specific key, in case of duplicate key:
+              .filter(([ik, iv]) => iv.key !== ik)
+              .forEach(([ik, iv]) => {
+                const val = value[ik];
+                delete value[ik];
+                delete input[ik];
+                value[iv.key] = val;
+                input[iv.key] = iv;
+              });
           }
+          update({ input, value });
         }),
         ':',
         anyValueEditor(v, input[k].val, (state) => {
@@ -565,7 +570,7 @@ const anyValueEditor = (value, input, update) => {
   }
   const editor =
     (type === 'list'  ) ? listEditor :
-    (type === 'record') ? recordEditor : singleValueEditor;
+    (type === 'record') ? recordEditor : jsonStringEditor;
   return editor(value, input, update);
 }
 
