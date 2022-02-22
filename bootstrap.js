@@ -464,6 +464,10 @@ body > :first-child {
   grid-row: 1 / 99;
 }
 
+button {
+  cursor: pointer;
+}
+
 .css-editor {
   border-radius: 4px;
   border: solid 2px #CCCCCC;
