@@ -102,7 +102,7 @@ function createElement(node) {
     return document.createTextNode(node);
   } else if (node.type === 'vdom-component') {
     const target = document.createElement('vdom-component');
-    node.component = node.constructor({ state: node.props.initState, target });
+    node.component = node.constructor(node.props.initState, target);
     return node.component.getTarget();
   }
   const $el = document.createElement(node.type);
@@ -194,18 +194,8 @@ function updateElements($parent, newNodes, oldNodes) {
 }
 
 function makeComponent(render, initState, target) {
-  let prevState = {};
+  let prevState = initState || {};
   let prevContent = null;
-  const getElement = (ref) => {
-    const element =
-      (typeof ref === 'string'  ) ? document.querySelector(ref) :
-      (typeof ref === 'function') ? ref() : ref;
-    return element || document.createElement('vdom-component');
-  };
-  const setTarget = (newTarget) => {
-    target = getElement(newTarget);
-  };
-  const getTarget = () => target;
   const update = (state) => {
     state = state || prevState;
     let content = render(state, update);
@@ -218,19 +208,26 @@ function makeComponent(render, initState, target) {
     prevContent = content;
     prevState = state;
   };
+  const getElement = (ref) => (
+    (typeof ref === 'string'  ) ? document.querySelector(ref) :
+    (typeof ref === 'function') ? ref() : ref
+  );
   const appendTo = (parent) => {
-    getElement(parent).appendChild(target);
+    parent = getElement(parent);
+    if (parent && parent.appendChild) {
+      parent.appendChild(target);
+    }
   }
-  setTarget(target);
-  if (initState) { update(initState); }
-  return { getTarget, setTarget, appendTo, update };
+  target = getElement(target) || document.createElement('vdom-component');
+  update();
+  return { update, appendTo };
 }
 
-function Component(render, defaultState, defaultTarget) {
-  return ({ target, state } = {}) => makeComponent(
+function Component(render, defaultState) {
+  return (initState, target) => makeComponent(
     render,
-    state || defaultState,
-    target || defaultTarget
+    initState || defaultState,
+    target
   );
 }
 
@@ -593,9 +590,9 @@ window.onload = () => {
   var obj = {w:'six'};
   var xyz = {x:3,y:list,z:obj};
   var value = [1,2,xyz,'seven','eight'];
-  ValueEditor({ state: { value } }).appendTo(document.body);
+  ValueEditor({ value }).appendTo(document.body);
   var editors = [value,xyz,list,obj].map(v => {
-    var ve = ValueEditor({ state: { value: v } });
+    var ve = ValueEditor({ value: v });
     ve.appendTo(document.body);
     return ve;
   });
