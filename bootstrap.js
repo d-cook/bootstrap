@@ -234,164 +234,6 @@ function Component(render, defaultState) {
 //---------------------------------------------------------
 //UI APP
 
-const CssEditor = Component(({ css }, update) => {
-  const head = document.getElementsByTagName('head')[0];
-  let styleTag = head.getElementsByTagName('style')[0];
-  if (!styleTag) {
-    styleTag = document.createElement('style');
-    head.appendChild(styleTag);
-  }
-  styleTag.innerHTML = css;
-  const lines = css.split('\n');
-  const cols = Math.max(...lines.map(L => L.length));
-  const rows = lines.length;
-  return (
-    h('div', { className: 'css-editor' },
-      h('p', {}, 'Global CSS:'),
-      h('textarea', {
-        rows, cols,
-        onInput: (e) => {
-          css = e.target.value;
-          update({ css });
-        }
-      }, css)
-    )
-  );
-}, {
-  css: (`
-body {
-  display: grid;
-  grid-template-columns:
-    1fr 1fr 1fr 1fr;
-  column-gap: 8px;
-  row-gap: 8px;
-}
-
-body > :first-child {
-  grid-row: 1 / 99;
-}
-
-.css-editor {
-  border-radius: 4px;
-  border: solid 2px #CCCCCC;
-  background-color: #FDFDFD;
-  width: min-content;
-  height: min-content;
-  padding: 0;
-}
-
-.css-editor p {
-  margin: 0;
-  margin-left: 2px;
-}
-
-.css-editor textarea {
-  outline: none;
-  font-size: 13px;
-  font-family: monospace;
-  color: #004444;
-  background-color: #F8F8F8;
-  border: none;
-  border-top: 2px solid #CCCCCC;
-  padding: 2px;
-  display: flex;
-  resize: none;
-}
-
-.x-button {
-  position: absolute;
-  border: solid 1px red;
-  border-radius: 10px;
-  padding: 2px;
-  background-color: red;
-  font-weight: bold;
-  font-size: 10px;
-  color: white;
-  line-height: 0.7;
-  margin-left: -5px;
-  margin-top: -4px;
-}
-
-.add-button {
-  border: none;
-  border-radius: 4px;
-  background-color: #AAAAAA;
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 0.8;
-  min-width: 40px;
-  padding: 0;
-}
-
-.add-button:first-child {
-  margin-left: -4px;
-  margin-top: -3px;
-}
-
-.value-editor {
-  font-family: monospace;
-  border: solid 2px black;
-  border-radius: 4px;
-}
-
-.list-editor {
-  display: flex;
-  flex-direction: column;
-  row-gap: 5px;
-  width: min-content;
-  padding: 8px 4px 4px 8px;
-  border: 2px solid #8888CC;
-  background-color: #EEEEFF;
-  border-radius: 6px;
-}
-
-.list-editor .value-editor {
-  padding-left: 5px;
-}
-
-.list-editor > .add-button {
-  background-color: blue;
-}
-
-.record-editor {
-  display: flex;
-  flex-direction: column;
-  row-gap: 5px;
-  width: min-content;
-  padding: 8px 4px 4px 8px;
-  border: 2px solid #88CC88;
-  background-color: #EEFFEE;
-  border-radius: 6px;
-}
-
-.record-editor > div {
-  display: flex;
-  flex-direction: row;
-  align-items: start;
-  column-gap: 2px;
-}
-
-.record-editor .value-editor {
-  padding-left: 5px;
-}
-
-.record-editor > .add-button {
-  background-color: green;
-}
-
-.changed {
-  color: #004488;
-  background-color: #DDFFFF;
-}
-
-.error {
-  color: #880000;
-  background-color: #FFCCCC;
-}
-  `).trim()
-});
-
 const getType = (value) => {
   const type = typeof value;
   if (type === 'string' || type === 'number') { return type; }
@@ -584,8 +426,166 @@ const ValueEditor = Component(({ value, input }, update) => {
   return anyValueEditor(value, input, update);
 }, { value: null });
 
+const GlobalCssEditor = Component(({ css }, update) => {
+  const head = document.getElementsByTagName('head')[0];
+  let styleTag = head.getElementsByTagName('style')[0];
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    head.appendChild(styleTag);
+  }
+  styleTag.innerHTML = css;
+  const lines = css.split('\n');
+  const cols = Math.max(...lines.map(L => L.length));
+  const rows = lines.length;
+  return (
+    h('div', { className: 'css-editor' },
+      h('p', {}, 'Global CSS:'),
+      h('textarea', {
+        rows, cols,
+        onInput: (e) => {
+          css = e.target.value;
+          update({ css });
+        }
+      }, css)
+    )
+  );
+}, { css: '' });
+
+const globalCss = `
+body {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr 1fr 1fr;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+
+body > :first-child {
+  grid-row: 1 / 99;
+}
+
+.css-editor {
+  border-radius: 4px;
+  border: solid 2px #CCCCCC;
+  background-color: #FDFDFD;
+  width: min-content;
+  height: min-content;
+  padding: 0;
+}
+
+.css-editor p {
+  margin: 0;
+  margin-left: 2px;
+}
+
+.css-editor textarea {
+  outline: none;
+  font-size: 13px;
+  font-family: monospace;
+  color: #004444;
+  background-color: #F8F8F8;
+  border: none;
+  border-top: 2px solid #CCCCCC;
+  padding: 2px;
+  display: flex;
+  resize: none;
+}
+
+.x-button {
+  position: absolute;
+  border: solid 1px red;
+  border-radius: 10px;
+  padding: 2px;
+  background-color: red;
+  font-weight: bold;
+  font-size: 10px;
+  color: white;
+  line-height: 0.7;
+  margin-left: -5px;
+  margin-top: -4px;
+}
+
+.add-button {
+  border: none;
+  border-radius: 4px;
+  background-color: #AAAAAA;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 0.8;
+  min-width: 40px;
+  padding: 0;
+}
+
+.add-button:first-child {
+  margin-left: -4px;
+  margin-top: -3px;
+}
+
+.value-editor {
+  font-family: monospace;
+  border: solid 2px black;
+  border-radius: 4px;
+}
+
+.list-editor {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+  width: min-content;
+  padding: 8px 4px 4px 8px;
+  border: 2px solid #8888CC;
+  background-color: #EEEEFF;
+  border-radius: 6px;
+}
+
+.list-editor .value-editor {
+  padding-left: 5px;
+}
+
+.list-editor > .add-button {
+  background-color: blue;
+}
+
+.record-editor {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+  width: min-content;
+  padding: 8px 4px 4px 8px;
+  border: 2px solid #88CC88;
+  background-color: #EEFFEE;
+  border-radius: 6px;
+}
+
+.record-editor > div {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+  column-gap: 2px;
+}
+
+.record-editor .value-editor {
+  padding-left: 5px;
+}
+
+.record-editor > .add-button {
+  background-color: green;
+}
+
+.changed {
+  color: #004488;
+  background-color: #DDFFFF;
+}
+
+.error {
+  color: #880000;
+  background-color: #FFCCCC;
+}
+`.trim();
+
 window.onload = () => {
-  CssEditor().appendTo(document.body);
+  GlobalCssEditor({ css: globalCss }).appendTo(document.body);
   var list = [4,5];
   var obj = {w:'six'};
   var xyz = {x:3,y:list,z:obj};
