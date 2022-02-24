@@ -6,48 +6,52 @@ The big picture is to (1) bootstrap such a system that contains the minimum mech
 This _specific_ attempt (I have others) builds on web technologies (JavaScript, HTML, CSS) as a "given" foundation of software, (1) because it's become so ubiquitous that it's hard to go wrong there, and (2) because that has _immediate_ practicality for making real world software using mainstream technologies. In order for this (i.e. the inital app / tool I am making here) to be fully self-contained and self-describing, everything must be implemented _without_ the usual NPM paraphanalia of packages, transpilers, etc -- just plain old JavaScript loaded directly from a flat file.
 
 ## Current Plan
-1. Make a [simple virtual DOM engine](https://github.com/d-cook/vdom) that can be a self-contained part of this app
-2. Create a simple vdom view / editor for each type of data:
-   - Single values like numbers, strings, booleans, null
-   - Compound values like lists (arrays) and records (objects)
-     - Add/remove entries; collapsible; insert/extract other existing entities; clone (deep copy)
-   - Functions
+1. [x] Make a [simple virtual DOM engine](https://github.com/d-cook/vdom) that can be a self-contained part of this app
+2. [ ] Create a simple vdom view / editor for each type of data:
+   - [x] Single values like numbers, strings, booleans, null
+   - [ ] Compound values like lists (arrays) and records (objects)
+     - [x] Add/remove entries
+     - [x] Prevent infinitely nested cycles
+     - [ ] collapsible
+     - [ ] insert/extract existing entities
+     - [ ] clone (deep copy?)
+   - [ ] Functions
      - How to preserve references? Pass a master context that contains everything?
-   - Dynamic fields (raw JSON <--> whatever view is appropriate)
-3. Bootstrap the UI/App as it exists up to this point
-   - Convert the entire app into a vdom view / editor + the data to be viewed
-     - Recode everything into a single top-level structure ("master context")
-     - Create view for that top-level structure (shows all entities created)
-     - Create view for the global CSS (also stored in top-level structure)
-   - Create the bootstrapper:
-     - A function that generates JS code which recreates the APP in its current state
-     - That code contains: all entites (hard-codeded), code to invoke the APP view
-     - Perhaps also auto-copy this JS into a <script> tag, so that simply saving the page creates a bootstrapping HTML doc
+   - [x] Dynamic fields (raw JSON <--> whatever view is appropriate)
+3. [ ] Bootstrap the UI/App as it exists up to this point
+   - [ ] Convert the entire app into a vdom view / editor + the data to be viewed
+     - [ ] Recode everything into a single top-level structure ("master context")
+     - [ ] Create view for that top-level structure (shows all entities created)
+     - [x] Create view for the global CSS (also stored in top-level structure)
+   - [ ] Create the bootstrapper:
+     - [ ] A function that generates JS code which recreates the APP in its current state
+     - [ ] That code contains: all entites (hard-codeded), code to invoke the APP view
+     - [ ] Perhaps also auto-copy this JS into a <script> tag, so that simply saving the page creates a bootstrapping HTML doc
 
 _At this point, any further development can be done via the running App itself_
 
-4. Create the self-running runtime
-<br>(not as hard as it sounds; I've done this simply, and many times)
-   - A data-representation of code and [an interpreter](https://github.com/d-cook/Interact) that runs such code
-   - The interpreter & all operations are stored in the top-level structure (thus it can inspect and modify itself)
-5. Convert everything (app & runtime) into the interpreted representation
-   - First, create a better view for this kind of code
-     - Either a nested-expressions view of the code...
+4. [ ] Create the self-running runtime
+<br>(not as hard as it sounds; I've done this multiple times)
+   - [ ] A data-representation of code and [an interpreter](https://github.com/d-cook/Interact) that runs such code
+   - [ ] The interpreter & all operations are stored in the top-level structure (thus it can inspect and modify itself)
+5. [ ] Convert everything (app & runtime) into the interpreted representation
+   - [ ] First, create a better view for this kind of code
+     - [ ] Either a nested-expressions view of the code...
        - My [original implementation](https://github.com/d-cook/Objects) was based on expression-lists that were easy enough to understand.
        - My [re-envisioned model](https://github.com/d-cook/Interact) is more powerful (e.g. a DAG with direct references), but not great in raw form.
        - There is a straightfoward way to convert the new DAG model into nested expressions
-     - And/or make the DAG / sequence of instructions model more palpable:
-       - Show names of referenced entities, rather than the numeric indexes that describe "where" they are
-       - Code by clicking on which operation to perform and which entities to perform it on
-   - Recode (nearly) everything into the interpreted representation of code
+     - [ ] And/or make the DAG / sequence of instructions model more palpable:
+       - [ ] Show names of referenced entities, rather than the numeric indexes that describe "where" they are
+       - [ ] Code by clicking on which operation to perform and which entities to perform it on
+   - [ ] Recode (nearly) everything into the interpreted representation of code
      - All code in the app will now be run by the interpreter (the boostrapper gets this going)
-   - Convert the interpreter itself into the interpreted representation:
-     - Do the conversion, but don't replace the JavaScript version of it yet
-     - Create a compiler (function) that converts expressions into JavaScript code
-     - Compile the converted intpreter back to JavaScript from the interpreted representation
-     - Ensure that the re-generated JavaScript interpreter works as it did before
-     - Modify the bootstrap-generator compile the interpreter and inject the result into the bootstrap code
-     - Test the bootstrap to ensure the app works the same after being re-bootstrapped
+   - [ ] Convert the interpreter itself into the interpreted representation:
+     - [ ] Do the conversion, but don't replace the JavaScript version of it yet
+     - [ ] Create a compiler (function) that converts expressions into JavaScript code
+     - [ ] Compile the converted intpreter back to JavaScript from the interpreted representation
+     - [ ] Ensure that the re-generated JavaScript interpreter works as it did before
+     - [ ] Modify the bootstrap-generator compile the interpreter and inject the result into the bootstrap code
+     - [ ] Test the bootstrap to ensure the app works the same after being re-bootstrapped
 
 _At this point, further development is done in the new code representation rather than JavaScript_
 
