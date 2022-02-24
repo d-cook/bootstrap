@@ -260,6 +260,16 @@ const xButton = (onClick) => {
   return h('button', { className: 'x-button', onClick }, 'X')
 };
 
+const cycleIndicator = (depth) => {
+  return h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
+}
+
+const valueEditorOrCycle = (value, input, path, update) => {
+  const parentIdx = path.indexOf(value);
+  return (parentIdx >= 0) ? cycleIndicator(path.length - parentIdx) :
+    anyValueEditor(value, input, path.concat([value]), update);
+};
+
 const rawStringEditor = (value, input, update) => {
   if (typeof input !== 'string') {
     input = value;
@@ -330,7 +340,7 @@ const jsonStringEditor = (value, input, update) => {
   });
 };
 
-const listEditor = (value, input, update) => {
+const listEditor = (value, input, path, update) => {
   input = input || { i: -1 };
   return h('div', { className: 'list-editor' },
     value.map((v, i) =>
@@ -339,12 +349,17 @@ const listEditor = (value, input, update) => {
           value = removeItem(value, i);
           update({ value, input: null });
         }),
-        anyValueEditor(v, (input.i === i ? input.value : null), (state) => {
-          value[i] = state.value;
-          input = (state.input === null) ? null :
-            { i, value: state.input };
-          update({ value, input });
-        })
+        valueEditorOrCycle(
+          v,
+          (input.i === i ? input.value : null),
+          path,
+          (state) => {
+            value[i] = state.value;
+            input = (state.input === null) ? null :
+              { i, value: state.input };
+            update({ value, input });
+          }
+        )
       )
     ),
     h('button', {
@@ -357,7 +372,7 @@ const listEditor = (value, input, update) => {
   );
 };
 
-const recordEditor = (value, input, update) => {
+const recordEditor = (value, input, path, update) => {
   input = input || { k: null, v: null };
   const newKey = (keys, k) => {
     const A = (Math.random() < 0.5) ? 65 : 97;
@@ -382,12 +397,17 @@ const recordEditor = (value, input, update) => {
           update({ input, value });
         }),
         ':',
-        anyValueEditor(v, (input.v === v ? input.value : null), (state) => {
-          value[k] = state.value;
-          input = (state.input === null) ? null :
-            { v: state.value, value: state.input };
-          update({ value, input });
-        })
+        valueEditorOrCycle(
+          v,
+          (input.v === v ? input.value : null),
+          path,
+          (state) => {
+            value[k] = state.value;
+            input = (state.input === null) ? null :
+              { v: state.value, value: state.input };
+            update({ value, input });
+          }
+        )
       )
     ),
     h('button', {
@@ -401,16 +421,17 @@ const recordEditor = (value, input, update) => {
   );
 };
 
-const anyValueEditor = (value, input, update) => {
+const anyValueEditor = (value, input, path, update) => {
   const type = getType(value);
-  const editor =
-    (type === 'list'  ) ? listEditor :
-    (type === 'record') ? recordEditor : jsonStringEditor;
-  return editor(value, input, update);
+  return (
+    (type === 'list'  ) ? listEditor  (value, input, path, update) :
+    (type === 'record') ? recordEditor(value, input, path, update)
+                        : jsonStringEditor(value, input, update)
+  );
 }
 
 const ValueEditor = Component(({ value, input }, update) => {
-  return anyValueEditor(value, input, update);
+  return anyValueEditor(value, input, [], update);
 }, { value: null });
 
 const GlobalCssEditor = Component(({ css }, update) => {
@@ -519,6 +540,17 @@ button {
   border-radius: 4px;
 }
 
+.cycle-indicator {
+  color: #CC4400;
+  font-weight: bold;
+  background: #FFEECC;
+  font-family: monospace;
+  letter-spacing: -1;
+  border: solid 2px #CC4400;
+  border-radius: 10px;
+  padding: 0 6px;
+}
+
 .list-editor {
   display: flex;
   flex-direction: column;
@@ -581,6 +613,8 @@ window.onload = () => {
   var obj = { w: 'six' };
   var xyz = { x: 3, y: list, z: obj };
   var value = [1, 2, xyz, 'seven', 'eight'];
+  obj.self = obj;
+  list.push(xyz);
   var editors = [value, value, xyz, list, obj].map(v => {
     var ve = ValueEditor({ value: v });
     ve.appendTo(document.body);
