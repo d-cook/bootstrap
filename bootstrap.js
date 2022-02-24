@@ -241,7 +241,12 @@ const getType = (value) => {
   if (!value) { return 'null'; }
   if (Array.isArray(value)) { return 'list'; }
   return 'record';
-}
+};
+
+const isListOrRecord = (value) => {
+  const type = getType(value);
+  return type === 'list' || type === 'record';
+};
 
 const removeItem = (items, i) => {
   items.splice(i, 1); return items;
@@ -255,42 +260,30 @@ const xButton = (onClick) => {
   return h('button', { className: 'x-button', onClick }, 'X')
 };
 
-const getEditorInputState = (value) => {
-  const type = getType(value);
-  if (type === 'list') { return value.map(getEditorInputState); }
-  if (type === 'record') {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, val]) =>
-        [key, { key, val: getEditorInputState(val) }]
-      )
-    );
-  }
-  return JSON.stringify(value);
-};
-
 const rawStringEditor = (value, input, update) => {
-  if (typeof input !== 'string') { input = value; }
-  const save = () => {
-    setTimeout(() => {
-      if (value !== input) {
-        update({ value: input, input });
-      }
-    });
-  };
+  if (typeof input !== 'string') {
+    input = value;
+  }
   const isChanged = (input !== value);
+  const setInput = (e) => {
+    input = e.target.value;
+    update({ value, input });
+  };
   return h('input', {
     className: 'value-editor' +
       (isChanged ? ' changed' : ''),
     type: 'text',
     value: input,
     size: Math.max(1, input.length),
-    onInput: (e) => {
-      input = e.target.value;
-      update({ value, input });
+    onInput: setInput,
+    onFocus: setInput,
+    onBlur: () => {
+      update({ value, input: null });
     },
-    onBlur: save,
     onKeyUp: ({ key }) => {
-      if (key === 'Enter') { save(); }
+      if (key === 'Enter' && value !== input) {
+        update({ value: input, input });
+      }
       if (key === 'Escape') {
         update({ value, input: value });
       }
@@ -299,32 +292,36 @@ const rawStringEditor = (value, input, update) => {
 };
 
 const jsonStringEditor = (value, input, update) => {
-  if (typeof input !== 'string') { input = JSON.stringify(value); }
-  const save = () => {
-    setTimeout(() => {
-      if (JSON.stringify(value) !== input) {
-        try { value = JSON.parse(input); } catch(ex) { }
-        input = getEditorInputState(value);
-        update({ value, input });
-      }
-    });
-  };
+  if (typeof input !== 'string') {
+    input = JSON.stringify(value);
+  }
   let isError = true;
   try { JSON.parse(input); isError = false; } catch(ex) { }
   const isChanged = !isError && (input !== JSON.stringify(value));
+  const setInput = (e) => {
+    input = e.target.value;
+    update({ value, input });
+  };
   return h('input', {
     className: 'value-editor' +
       (isError ? ' error' : isChanged ? ' changed' : ''),
     type: 'text',
     value: input,
     size: Math.max(1, input.length),
-    onInput: (e) => {
-      input = e.target.value;
-      update({ value, input });
+    onInput: setInput,
+    onFocus: setInput,
+    onBlur: () => {
+      update({ value, input: null });
     },
-    onBlur: save,
     onKeyUp: ({ key }) => {
-      if (key === 'Enter') { save(); }
+      if (key === 'Enter' && JSON.stringify(value) !== input) {
+        try {
+          value = JSON.parse(input);
+          update({ value, input: isListOrRecord(value) ? null : input });
+        } catch(ex) {
+          update({ value, input: JSON.stringify(value) });
+        }
+      }
       if (key === 'Escape') {
         input = JSON.stringify(value);
         update({ value, input });
@@ -334,17 +331,18 @@ const jsonStringEditor = (value, input, update) => {
 };
 
 const listEditor = (value, input, update) => {
+  input = input || { i: -1 };
   return h('div', { className: 'list-editor' },
     value.map((v, i) =>
       h('div', { key: i },
         xButton(() => {
           value = removeItem(value, i);
-          input = removeItem(input, i);
-          update({ value, input });
+          update({ value, input: null });
         }),
-        anyValueEditor(v, input[i], (state) => {
+        anyValueEditor(v, (input.i === i ? input.value : null), (state) => {
           value[i] = state.value;
-          input[i] = state.input;
+          input = (state.input === null) ? null :
+            { i, value: state.input };
           update({ value, input });
         })
       )
@@ -353,48 +351,41 @@ const listEditor = (value, input, update) => {
       className: 'add-button',
       onClick: (e) => {
         value.push(null);
-        input.push('null');
-        update({ value, input });
+        update({ value, input: null });
       }
     }, '+')
   );
 };
 
 const recordEditor = (value, input, update) => {
+  input = input || { k: null, v: null };
   const newKey = (keys, k) => {
     const A = (Math.random() < 0.5) ? 65 : 97;
     k = (k || '') + String.fromCharCode(A + Math.floor(Math.random() * 26));
     return keys.includes(k) ? newKey(keys, k) : k;
   };
-  const keyInputSize = Math.max(1, ...Object.values(input).map(kv => kv.key.length));
   return h('div', { className: 'record-editor' },
     Object.entries(value).map(([k, v], i) =>
       h('div', { key: i },
         xButton(() => {
           delete value[k];
-          delete input[k];
-          update({ value, input });
+          update({ value, input: null });
         }),
-        rawStringEditor(k, input[k].key, (state) => {
-          input[k].key = state.input;
+        rawStringEditor(k, (input.k === k ? input.value : null), (state) => {
+          input = (state.input === null) ? null :
+            { k: state.value, value: state.input };
           if (state.value !== k) {
-            Object.entries(input)
-              // Look for mismatch instead of specific key, in case of duplicate key:
-              .filter(([ik, iv]) => iv.key !== ik)
-              .forEach(([ik, iv]) => {
-                const val = value[ik];
-                delete value[ik];
-                delete input[ik];
-                value[iv.key] = val;
-                input[iv.key] = iv;
-              });
+            const val = value[k];
+            delete value[k];
+            value[state.value] = val;
           }
           update({ input, value });
         }),
         ':',
-        anyValueEditor(v, input[k].val, (state) => {
+        anyValueEditor(v, (input.v === v ? input.value : null), (state) => {
           value[k] = state.value;
-          input[k].val = state.input;
+          input = (state.input === null) ? null :
+            { v: state.value, value: state.input };
           update({ value, input });
         })
       )
@@ -404,8 +395,7 @@ const recordEditor = (value, input, update) => {
       onClick: (e) => {
         const key = newKey(Object.keys(value));
         value[key] = null;
-        input[key] = { key, val: 'null' };
-        update({ value, input });
+        update({ value, input: null });
       }
     }, '+')
   );
@@ -413,9 +403,6 @@ const recordEditor = (value, input, update) => {
 
 const anyValueEditor = (value, input, update) => {
   const type = getType(value);
-  if (getType(input) === 'null') {
-    input = getEditorInputState(value);
-  }
   const editor =
     (type === 'list'  ) ? listEditor :
     (type === 'record') ? recordEditor : jsonStringEditor;
@@ -590,12 +577,11 @@ button {
 
 window.onload = () => {
   GlobalCssEditor({ css: globalCss }).appendTo(document.body);
-  var list = [4,5];
-  var obj = {w:'six'};
-  var xyz = {x:3,y:list,z:obj};
-  var value = [1,2,xyz,'seven','eight'];
-  ValueEditor({ value }).appendTo(document.body);
-  var editors = [value,xyz,list,obj].map(v => {
+  var list = [ 4, 5 ];
+  var obj = { w: 'six' };
+  var xyz = { x: 3, y: list, z: obj };
+  var value = [1, 2, xyz, 'seven', 'eight'];
+  var editors = [value, value, xyz, list, obj].map(v => {
     var ve = ValueEditor({ value: v });
     ve.appendTo(document.body);
     return ve;
