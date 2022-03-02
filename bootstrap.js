@@ -344,7 +344,7 @@ const listEditor = (value, input, path, update) => {
   input = input || { i: -1 };
   return h('div', { className: 'list-editor' },
     value.map((v, i) =>
-      h('div', { key: i },
+      h('div', { key: i, className: 'editor-row' },
         xButton(() => {
           value = removeItem(value, i);
           update({ value, input: null });
@@ -381,7 +381,7 @@ const recordEditor = (value, input, path, update) => {
   };
   return h('div', { className: 'record-editor' },
     Object.entries(value).map(([k, v], i) =>
-      h('div', { key: i },
+      h('div', { key: i, className: 'editor-row' },
         xButton(() => {
           delete value[k];
           update({ value, input: null });
@@ -396,7 +396,7 @@ const recordEditor = (value, input, path, update) => {
           }
           update({ input, value });
         }),
-        ':',
+        h('span', { className: 'colon' }, ':'),
         valueEditorOrCycle(
           v,
           (input.v === v ? input.value : null),
@@ -536,14 +536,29 @@ button {
 
 .value-editor {
   font-family: monospace;
-  border: solid 2px black;
+  border: solid 2px transparent;
   border-radius: 4px;
+  background: none;
+}
+
+.value-editor:hover {
+  border-color: rgba(0,0,0,0.2);
+  background-color: rgba(255,255,255,0.7);
+}
+
+.value-editor:focus {
+  border-color: black;
+  background-color: white;
+}
+
+.value-editor, .colon {
+  margin-bottom: -5px;
 }
 
 .cycle-indicator {
   color: #CC4400;
   font-weight: bold;
-  background: #FFEECC;
+  background-color: #FFEECC;
   font-family: monospace;
   letter-spacing: -1;
   border: solid 2px #CC4400;
