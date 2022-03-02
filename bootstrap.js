@@ -365,7 +365,9 @@ const listEditor = (value, input, path, update) => {
     h('button', {
       className: 'add-button',
       onClick: (e) => {
-        value.push(null);
+        const nums = value.filter(n => parseInt(n) === n);
+        const next = (nums.length > 0) ? Math.max(...nums) + 1 : value.length;
+        value.push(next);
         update({ value, input: null });
       }
     }, '+')
