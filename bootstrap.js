@@ -598,16 +598,18 @@ div:hover > .add-button {
 }
 
 .cycle-indicator {
+  display: flex;
   color: #CC4400;
   font-weight: bold;
   background-color: #FFEECC;
   font-family: monospace;
   letter-spacing: -1;
-  border: solid 2px #CC4400;
-  border-radius: 10px;
-  padding: 0 6px;
-  margin-top: -3px;
-  margin-bottom: -3px;
+  border: solid 1px #CC4400;
+  border-radius: 4px;
+  padding: 0 2px;
+  margin: -2px 0;
+  justify-content: center;
+  align-items: center;
 }
 
 .list-editor {
