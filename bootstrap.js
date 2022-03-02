@@ -594,7 +594,11 @@ div:hover > .add-button {
 }
 
 .colon {
-  margin-left: -5px
+  margin-left: -10px
+}
+
+.colon + .value-editor {
+  margin-left: -2px;
 }
 
 .cycle-indicator {
@@ -607,7 +611,7 @@ div:hover > .add-button {
   border: solid 1px #CC4400;
   border-radius: 4px;
   padding: 0 2px;
-  margin: -2px 0 -2px 4px;
+  margin: -2px 0 -2px 2px;
   justify-content: center;
   align-items: center;
 }
