@@ -513,17 +513,27 @@ button {
 }
 
 .x-button {
+  display: none;
   position: absolute;
   border: solid 1px red;
   border-radius: 10px;
   padding: 2px;
-  background-color: red;
+  background-color: white;
   font-weight: bold;
   font-size: 10px;
-  color: white;
+  color: red;
   line-height: 0.7;
   margin-left: -5px;
   margin-top: -4px;
+}
+
+.editor-row:hover > .x-button {
+  display: initial;
+}
+
+.x-button:hover {
+  color: white;
+  background-color: red;
 }
 
 .add-button {
@@ -561,7 +571,7 @@ button {
 }
 
 .value-editor, .colon {
-  margin-bottom: -5px;
+  margin: -4px 0;
 }
 
 .cycle-indicator {
@@ -586,10 +596,6 @@ button {
   border-radius: 6px;
 }
 
-.list-editor .value-editor {
-  padding-left: 5px;
-}
-
 .list-editor > .add-button {
   background-color: blue;
 }
@@ -610,10 +616,6 @@ button {
   flex-direction: row;
   align-items: start;
   column-gap: 2px;
-}
-
-.record-editor .value-editor {
-  padding-left: 5px;
 }
 
 .record-editor > .add-button {
