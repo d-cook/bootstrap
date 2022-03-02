@@ -393,7 +393,15 @@ const recordEditor = (value, input, path, update) => {
             const val = value[k];
             delete value[k];
             value[state.value] = val;
-            document.activeElement.blur();
+            const parentEditor = document.activeElement.parentNode.parentNode;
+            // The new key becomes the last entry. Focus back to it after re-render:
+            setTimeout(() => {
+              const len = parentEditor.children.length;
+              if (len > 1) {
+                // Last child is the "+" button, last entry is the child before that:
+                parentEditor.children[len - 2].querySelector('.value-editor').focus();
+              }
+            });
           }
           update({ input, value });
         }),
