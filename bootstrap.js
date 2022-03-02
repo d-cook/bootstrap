@@ -390,17 +390,17 @@ const recordEditor = (value, input, path, update) => {
           input = (state.input === null) ? null :
             { k: state.value, value: state.input };
           if (state.value !== k) {
+            const keys = Object.keys(value);
+            const keyIndex = keys.indexOf(state.value);
+            // The new key becomes last entry or is an already existing entry:
+            const newIndex = (keyIndex < 0) ? keys.length - 1 : keyIndex;
             const val = value[k];
             delete value[k];
             value[state.value] = val;
             const parentEditor = document.activeElement.parentNode.parentNode;
-            // The new key becomes the last entry. Focus back to it after re-render:
+            // "Keep" focus on the same key by re-focusing on it after next render:
             setTimeout(() => {
-              const len = parentEditor.children.length;
-              if (len > 1) {
-                // Last child is the "+" button, last entry is the child before that:
-                parentEditor.children[len - 2].querySelector('.value-editor').focus();
-              }
+              parentEditor.children[newIndex].querySelector('.value-editor').focus();
             });
           }
           update({ input, value });
