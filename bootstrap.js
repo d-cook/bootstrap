@@ -371,14 +371,8 @@ const listEditor = (value, input, path, update) => {
     }, '+')
   );
 };
-
 const recordEditor = (value, input, path, update) => {
   input = input || { k: null, v: null };
-  const newKey = (keys, k) => {
-    const A = (Math.random() < 0.5) ? 65 : 97;
-    k = (k || '') + String.fromCharCode(A + Math.floor(Math.random() * 26));
-    return keys.includes(k) ? newKey(keys, k) : k;
-  };
   return h('div', { className: 'record-editor' },
     Object.entries(value).map(([k, v], i) =>
       h('div', { key: i, className: 'editor-row' },
@@ -422,8 +416,14 @@ const recordEditor = (value, input, path, update) => {
     h('button', {
       className: 'add-button',
       onClick: (e) => {
-        const key = newKey(Object.keys(value));
-        value[key] = null;
+        const allKeys = Object.keys(value);
+        const numKeys = (allKeys
+          .filter(k => /^_\d+_$/.test(k))
+          .map(k => parseInt(k.slice(1, k.length - 1)))
+          .concat(allKeys.length)
+        );
+        const nextNum = Math.max(...numKeys) + 1;
+        value['_' + nextNum + '_'] = nextNum;
         update({ value, input: null });
       }
     }, '+')
