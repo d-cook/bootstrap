@@ -607,7 +607,7 @@ div:hover > .add-button {
   border: solid 1px #CC4400;
   border-radius: 4px;
   padding: 0 2px;
-  margin: -2px 0;
+  margin: -2px 0 -2px 4px;
   justify-content: center;
   align-items: center;
 }
