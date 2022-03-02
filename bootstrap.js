@@ -393,6 +393,7 @@ const recordEditor = (value, input, path, update) => {
             const val = value[k];
             delete value[k];
             value[state.value] = val;
+            document.activeElement.blur();
           }
           update({ input, value });
         }),
