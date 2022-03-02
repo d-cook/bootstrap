@@ -371,6 +371,7 @@ const listEditor = (value, input, path, update) => {
     }, '+')
   );
 };
+
 const recordEditor = (value, input, path, update) => {
   input = input || { k: null, v: null };
   return h('div', { className: 'record-editor' },
@@ -538,20 +539,29 @@ button {
 
 .add-button {
   display: none;
-  border: none;
+  border: 1px solid #AAAAAA;
   border-radius: 4px;
-  background: none;
+  background: white;
   color: #AAAAAA;
   font-weight: bold;
   font-size: 12px;
   line-height: 0.8;
-  min-width: 24px;
-  padding: 0;
+  width: 25px;
+  height: 9px;
+  margin-top: -2px;
+  margin-bottom: -12px;
+  align-self: center;
+  justify-content: center;
+  align-items: center;
 }
 
-div:hover > .add-button,
+div:hover > .add-button {
+  display: flex;
+}
+
 .add-button:first-child {
-  display: initial;
+  margin-top: 3px;
+  margin-bottom: -13px
 }
 
 .add-button:hover {
@@ -581,6 +591,10 @@ div:hover > .add-button,
   margin-bottom: -5px;
 }
 
+.colon {
+  margin-left: -5px
+}
+
 .cycle-indicator {
   color: #CC4400;
   font-weight: bold;
@@ -599,13 +613,15 @@ div:hover > .add-button,
   flex-direction: column;
   row-gap: 5px;
   width: min-content;
-  padding: 4px;
+  padding: 6px;
   border: 2px solid #8888CC;
   background-color: #EEEEFF;
   border-radius: 6px;
+  min-width: 26px;
 }
 
 .list-editor > .add-button {
+  border-color: blue;
   color: blue;
 }
 
@@ -619,10 +635,11 @@ div:hover > .add-button,
   flex-direction: column;
   row-gap: 5px;
   width: min-content;
-  padding: 4px;
+  padding: 6px;
   border: 2px solid #88CC88;
   background-color: #EEFFEE;
   border-radius: 6px;
+  min-width: 26px;
 }
 
 .record-editor > div {
@@ -633,6 +650,7 @@ div:hover > .add-button,
 }
 
 .record-editor > .add-button {
+  border-color: green;
   color: green;
 }
 
