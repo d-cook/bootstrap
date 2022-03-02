@@ -523,7 +523,7 @@ button {
   font-size: 10px;
   color: red;
   line-height: 0.7;
-  margin-left: -5px;
+  margin-left: -4px;
   margin-top: -4px;
 }
 
@@ -537,20 +537,26 @@ button {
 }
 
 .add-button {
+  display: none;
   border: none;
   border-radius: 4px;
-  background-color: #AAAAAA;
-  color: white;
+  background: none;
+  color: #AAAAAA;
   font-weight: bold;
   font-size: 12px;
   line-height: 0.8;
-  min-width: 40px;
+  min-width: 24px;
   padding: 0;
 }
 
+div:hover > .add-button,
 .add-button:first-child {
-  margin-left: -4px;
-  margin-top: -3px;
+  display: initial;
+}
+
+.add-button:hover {
+  background-color: #AAAAAA;
+  color: white;
 }
 
 .value-editor {
@@ -571,7 +577,8 @@ button {
 }
 
 .value-editor, .colon {
-  margin: -4px 0;
+  margin-top: -3px;
+  margin-bottom: -5px;
 }
 
 .cycle-indicator {
@@ -583,6 +590,8 @@ button {
   border: solid 2px #CC4400;
   border-radius: 10px;
   padding: 0 6px;
+  margin-top: -3px;
+  margin-bottom: -3px;
 }
 
 .list-editor {
@@ -590,14 +599,19 @@ button {
   flex-direction: column;
   row-gap: 5px;
   width: min-content;
-  padding: 8px 4px 4px 8px;
+  padding: 4px;
   border: 2px solid #8888CC;
   background-color: #EEEEFF;
   border-radius: 6px;
 }
 
 .list-editor > .add-button {
+  color: blue;
+}
+
+.list-editor > .add-button:hover {
   background-color: blue;
+  color: white;
 }
 
 .record-editor {
@@ -605,7 +619,7 @@ button {
   flex-direction: column;
   row-gap: 5px;
   width: min-content;
-  padding: 8px 4px 4px 8px;
+  padding: 4px;
   border: 2px solid #88CC88;
   background-color: #EEFFEE;
   border-radius: 6px;
@@ -619,7 +633,12 @@ button {
 }
 
 .record-editor > .add-button {
+  color: green;
+}
+
+.record-editor > .add-button:hover {
   background-color: green;
+  color: white;
 }
 
 .changed {
