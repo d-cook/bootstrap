@@ -612,13 +612,13 @@ button {
 }
 
 .changed {
-  color: #004488;
-  background-color: #DDFFFF;
+  color: #004488 !important;
+  background-color: #DDFFFF !important;
 }
 
 .error {
-  color: #880000;
-  background-color: #FFCCCC;
+  color: #880000 !important;
+  background-color: #FFCCCC !important;
 }
 `.trim();
 
