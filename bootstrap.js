@@ -431,7 +431,7 @@ const anyValueEditor = (value, input, path, update) => {
 }
 
 const ValueEditor = Component(({ value, input }, update) => {
-  return anyValueEditor(value, input, [], update);
+  return anyValueEditor(value, input, [value], update);
 }, { value: null });
 
 const GlobalCssEditor = Component(({ css }, update) => {
