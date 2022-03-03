@@ -340,6 +340,43 @@ const jsonStringEditor = (value, input, update) => {
   });
 };
 
+const textEditor = (value, input, update, validate) => {
+  if (typeof input !== 'string') {
+    input = value;
+  }
+  let isError = true;
+  try {
+    isError = (typeof validate === 'function') && !validate(input);
+  } catch(ex) { }
+  const isChanged = (input !== value);
+  const lines = input.split('\n');
+  const setInput = (e) => {
+    input = e.target.value;
+    update({ value, input });
+  };
+  return h('textarea', {
+    className: 'text-editor' +
+      (isError ? ' error' : isChanged ? ' changed' : ''),
+    style: 'resize:none',
+    value: input,
+    rows: lines.length,
+    cols: Math.max(1, ...lines.map(s => s.length)),
+    onInput: setInput,
+    onFocus: setInput,
+    onBlur: () => {
+      update({ value, input: null });
+    },
+    onKeyUp: ({ key, ctrlKey, shiftKey }) => {
+      if (key === 'Enter' && ctrlKey && value !== input) {
+        update({ value: input, input });
+      }
+      if (key === 'Escape') {
+        update({ value, input: value });
+      }
+    }
+  });
+};
+
 const listEditor = (value, input, path, update) => {
   input = input || { i: -1 };
   return h('div', { className: 'list-editor' },
@@ -497,6 +534,30 @@ const funcEditor = (value, input, update) => {
       update({ value, input });
     }),
     '}'
+  );
+}
+
+const funcRegex = /^function(\s|\n)*\w*(\s|\n)*\((\s|\n)*(\w+(\s|\n)*(\,\w+(\s|\n)*)*)?\)(\s|\n)*\{(.|\n)*\}$/;
+const lambdaRegex = /^(\((\s|\n)*(\w+(\s|\n)*(\,\w+(\s|\n)*)*)?\)|\w+(\s|\n)*)(\s|\n)*=>(\s|\n)*(\{(.|\n)*\}|\((.|\n)*\))$/;
+const isValidFunc = (src) => funcRegex.test(src) || lambdaRegex.test(src);
+const funcEditor = (value, input, update) => {
+  input = input || value.toString();
+  const parseFunc = (src) => {
+    src = src.trim().trim(';').trim();
+    if (!isValidFunc(src)) { return null; }
+    try {
+      const func = eval('(' + src + ')');
+      return (typeof func === 'function') ? func : null;
+    } catch (ex) { }
+  };
+  return h('div', { className: 'func-editor' },
+    textEditor(value.toString(), input, (state) => {
+      if (state.value !== value.toString()) {
+        value = parseFunc(state.value) || value;
+      }
+      input = state.input;
+      update({ value, input });
+    }, parseFunc)
   );
 }
 
@@ -733,6 +794,18 @@ div:hover > .add-button {
 .record-editor > .add-button:hover {
   background-color: green;
   color: white;
+}
+
+.func-editor {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
+  width: min-content;
+  padding: 6px;
+  border: 2px solid #CCCC88;
+  background-color: #FFFFEE;
+  border-radius: 6px;
+  min-width: 26px;
 }
 
 .changed {
