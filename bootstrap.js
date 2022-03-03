@@ -262,7 +262,7 @@ const xButton = (onClick) => {
 
 const cycleIndicator = (depth) => {
   return h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
-}
+};
 
 const valueEditorOrCycle = (value, input, path, update) => {
   const parentIdx = path.indexOf(value);
@@ -270,111 +270,58 @@ const valueEditorOrCycle = (value, input, path, update) => {
     anyValueEditor(value, input, path.concat([value]), update);
 };
 
-const rawStringEditor = (value, input, update) => {
-  if (typeof input !== 'string') {
-    input = value;
-  }
-  const isChanged = (input !== value);
-  const setInput = (e) => {
-    input = e.target.value;
-    update({ value, input });
-  };
-  return h('input', {
-    className: 'value-editor' +
-      (isChanged ? ' changed' : ''),
-    type: 'text',
-    value: input,
-    size: Math.max(1, input.length),
-    onInput: setInput,
-    onFocus: setInput,
-    onBlur: () => {
-      update({ value, input: null });
-    },
-    onKeyUp: ({ key }) => {
-      if (key === 'Enter' && value !== input) {
-        update({ value: input, input });
-      }
-      if (key === 'Escape') {
-        update({ value, input: value });
-      }
-    }
-  });
-};
-
-const jsonStringEditor = (value, input, update) => {
-  if (typeof input !== 'string') {
-    input = JSON.stringify(value);
-  }
-  let isError = true;
-  try { JSON.parse(input); isError = false; } catch(ex) { }
-  const isChanged = !isError && (input !== JSON.stringify(value));
-  const setInput = (e) => {
-    input = e.target.value;
-    update({ value, input });
-  };
-  return h('input', {
-    className: 'value-editor' +
-      (isError ? ' error' : isChanged ? ' changed' : ''),
-    type: 'text',
-    value: input,
-    size: Math.max(1, input.length),
-    onInput: setInput,
-    onFocus: setInput,
-    onBlur: () => {
-      update({ value, input: null });
-    },
-    onKeyUp: ({ key }) => {
-      if (key === 'Enter' && JSON.stringify(value) !== input) {
-        try {
-          value = JSON.parse(input);
-          update({ value, input: isListOrRecord(value) ? null : input });
-        } catch(ex) {
-          update({ value, input: JSON.stringify(value) });
-        }
-      }
-      if (key === 'Escape') {
-        input = JSON.stringify(value);
-        update({ value, input });
-      }
-    }
-  });
-};
-
-const textEditor = (value, input, update, validate) => {
-  if (typeof input !== 'string') {
-    input = value;
-  }
-  let isError = true;
-  try {
-    isError = (typeof validate === 'function') && !validate(input);
-  } catch(ex) { }
-  const isChanged = (input !== value);
+const textEditor = (value, input, update, isValid) => {
+  if (typeof input !== 'string') { input = value; }
+  if (typeof isValid !== 'function') { isValid = () => true; }
+  const isChanged = () => (input !== value);
   const lines = input.split('\n');
-  const setInput = (e) => {
+  const updateInput = (e) => {
     input = e.target.value;
     update({ value, input });
+  };
+  const saveValidChanges = () => {
+    if (isChanged() && isValid(input)) {
+      update({ value: input, input });
+    }
   };
   return h('textarea', {
-    className: 'text-editor' +
-      (isError ? ' error' : isChanged ? ' changed' : ''),
+    className: 'text-editor' + (
+      !isValid(input) ? ' error' :
+      isChanged( ) ? ' changed' : ''
+    ),
     style: 'resize:none',
     value: input,
     rows: lines.length,
     cols: Math.max(1, ...lines.map(s => s.length)),
-    onInput: setInput,
-    onFocus: setInput,
-    onBlur: () => {
-      update({ value, input: null });
-    },
-    onKeyUp: ({ key, ctrlKey, shiftKey }) => {
-      if (key === 'Enter' && ctrlKey && value !== input) {
-        update({ value: input, input });
+    onInput: updateInput,
+    onFocus: updateInput,
+    onBlur : saveValidChanges,
+    onKeyUp: ({ key, ctrlKey }) => {
+      if (key === 'Enter' && ctrlKey && isChanged() && isValid(input)) {
+        saveValidChanges();
       }
       if (key === 'Escape') {
         update({ value, input: value });
       }
     }
   });
+};
+
+const jsonEditor = (value, input, update) => {
+  const json = JSON.stringify(value, null, 2);
+  const updateJson = ({ value, input }) => {
+    try {
+      if (value !== json) { input = input.trim(); }
+      value = JSON.parse(value);
+      if (isListOrRecord(value)) { input = null; }
+    } catch(ex) { }
+    update({ value, input });
+  };
+  const isValid = (text) => {
+    try { JSON.parse(text); return true; }
+    catch(ex) { return false; }
+  };
+  return textEditor(json, input, updateJson, isValid)
 };
 
 const listEditor = (value, input, path, update) => {
@@ -420,7 +367,7 @@ const recordEditor = (value, input, path, update) => {
           delete value[k];
           update({ value, input: null });
         }),
-        rawStringEditor(k, (input.k === k ? input.value : null), (state) => {
+        textEditor(k, (input.k === k ? input.value : null), (state) => {
           input = (state.input === null) ? null :
             { k: state.value, value: state.input };
           if (state.value !== k) {
@@ -434,7 +381,7 @@ const recordEditor = (value, input, path, update) => {
             const parentEditor = document.activeElement.parentNode.parentNode;
             // "Keep" focus on the same key by re-focusing on it after next render:
             setTimeout(() => {
-              parentEditor.children[newIndex].querySelector('.value-editor').focus();
+              parentEditor.children[newIndex].querySelector('.text-editor').focus();
             });
           }
           update({ input, value });
@@ -470,6 +417,7 @@ const recordEditor = (value, input, path, update) => {
   );
 };
 
+
 const funcEditor = (value, input, update) => {
   input = input || value.toString();
   const parseFunc = (src) => {
@@ -492,7 +440,7 @@ const funcEditor = (value, input, update) => {
       update({ value, input });
     }, parseFunc)
   );
-}
+};
 
 const anyValueEditor = (value, input, path, update) => {
   const type = getType(value);
@@ -500,9 +448,9 @@ const anyValueEditor = (value, input, path, update) => {
     (type === 'list'    ) ? listEditor  (value, input, path, update) :
     (type === 'record'  ) ? recordEditor(value, input, path, update) :
     (type === 'function') ? funcEditor  (value, input, update) :
-                        jsonStringEditor(value, input, update)
+                            jsonEditor  (value, input, update)
   );
-}
+};
 
 const ValueEditor = Component(({ value, input }, update) => {
   return anyValueEditor(value, input, [value], update);
@@ -633,24 +581,24 @@ div:hover > .add-button {
   color: white;
 }
 
-.value-editor {
+.text-editor {
   font-family: monospace;
   border: solid 2px transparent;
   border-radius: 4px;
   background: none;
 }
 
-.value-editor:hover {
+.text-editor:hover {
   border-color: rgba(0,0,0,0.2);
   background-color: rgba(255,255,255,0.7);
 }
 
-.value-editor:focus {
+.text-editor:focus {
   border-color: black;
   background-color: white;
 }
 
-.value-editor, .colon {
+.text-editor, .colon {
   margin-top: -3px;
   margin-bottom: -5px;
 }
@@ -676,6 +624,7 @@ div:hover > .add-button {
   margin: -2px 0 -2px 2px;
   justify-content: center;
   align-items: center;
+  width: min-content;
 }
 
 .list-editor {
