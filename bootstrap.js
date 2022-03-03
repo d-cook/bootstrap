@@ -236,7 +236,7 @@ function Component(render, defaultState) {
 
 const getType = (value) => {
   const type = typeof value;
-  if (type === 'string' || type === 'number') { return type; }
+  if (['string', 'number', 'function'].includes(type)) { return type; }
   if (type === 'boolean') { return 'bool'; }
   if (!value) { return 'null'; }
   if (Array.isArray(value)) { return 'list'; }
@@ -433,12 +433,80 @@ const recordEditor = (value, input, path, update) => {
   );
 };
 
+const funcEditor = (value, input, update) => {
+  input = input || { name: null, arg: null, argi: null, body: null };
+  const src = value.toString().trim();
+  const hasBraces = (
+    /^function/.test(src) ||
+    /^([^=]|\=[^>])*\=>\s*\{/.test(src)
+  );
+  const name = /^\w+$/.test(value.name) ? value.name : '';
+  const args = /^[^\(]*\=>/.test(src) ?
+    [src.substring(0, src.indexOf('=>')).trim()] :
+    src.substring(
+      src.indexOf('(') + 1,
+      src.indexOf(')')
+    ).split(',').map(a => a.trim());
+  const body = (hasBraces) ?
+     src.substring(
+       src.indexOf('{') + 1,
+       src.lastIndexOf('}')
+     ).trim() :
+     'return ' + src.substring(src.indexOf('=>') + 2).trim();
+  const parseFunc = (name, args, body) => {
+    try {
+      return eval(
+        '(function ' + (name || '') +
+        '(' + args.join(', ') + ') ' +
+        '{\n' + body + '\n})'
+      );
+    } catch (ex) { }
+  };
+  return h('div', { className: 'func-editor' },
+    rawStringEditor(name, (input.name === null ? null : input.name), (state) => {
+      if (
+        state.value !== name &&
+        /^\w+$/.test(state.value)
+      ) {
+        value = parseFunc(state.value, args, body);
+      }
+      input = (state.input === null) ? null :
+        { name: state.input };
+      update({ value, input });
+    }),
+    '(',
+    args.map((arg, argi) =>
+      rawStringEditor(arg, (input.argi === argi ? input.arg : null), (state) => {
+        if (
+          /^\w+$/.test(state.value) &&
+          !args.some((a, i) => i !== argi && a === state.value)
+        ) {
+          args[argi] = state.value;
+          value = parseFunc(name, args, body);
+        }
+        input = (state.input === null) ? null :
+          { arg: state.input, argi };
+        update({ value, input });
+      })
+    ),
+    ') {',
+    rawStringEditor(body, (input.body === null ? null : input.body), (state) => {
+      value = parseFunc(name, args, state.value);
+      input = (state.input === null) ? null :
+        { body: state.input };
+      update({ value, input });
+    }),
+    '}'
+  );
+}
+
 const anyValueEditor = (value, input, path, update) => {
   const type = getType(value);
   return (
-    (type === 'list'  ) ? listEditor  (value, input, path, update) :
-    (type === 'record') ? recordEditor(value, input, path, update)
-                        : jsonStringEditor(value, input, update)
+    (type === 'list'    ) ? listEditor  (value, input, path, update) :
+    (type === 'record'  ) ? recordEditor(value, input, path, update) :
+    (type === 'function') ? funcEditor  (value, input, update) :
+                        jsonStringEditor(value, input, update)
   );
 }
 
@@ -683,7 +751,7 @@ window.onload = () => {
   var list = [ 4, 5 ];
   var obj = { w: 'six' };
   var xyz = { x: 3, y: list, z: obj };
-  var value = [1, 2, xyz, 'seven', 'eight'];
+  var value = [1, 2, xyz, 'seven', 'eight', () => {}, function abc(a,b,c) { return 123; }];
   obj.self = obj;
   list.push(xyz);
   var editors = [value, value, xyz, list, obj].map(v => {
