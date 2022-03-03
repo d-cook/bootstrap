@@ -292,7 +292,7 @@ const textEditor = (value, input, update, isValid) => {
     style: 'resize:none',
     value: input,
     rows: lines.length,
-    cols: Math.max(1, ...lines.map(s => s.length)),
+    cols: Math.max(1, ...lines.map(s => s.length - 1)),
     onInput: updateInput,
     onFocus: updateInput,
     onBlur : saveValidChanges,
@@ -603,11 +603,7 @@ div:hover > .add-button {
   margin-bottom: -5px;
 }
 
-.colon {
-  margin-left: -10px
-}
-
-.colon + .value-editor {
+.colon + .text-editor, .colon {
   margin-left: -2px;
 }
 
