@@ -471,80 +471,13 @@ const recordEditor = (value, input, path, update) => {
 };
 
 const funcEditor = (value, input, update) => {
-  input = input || { name: null, arg: null, argi: null, body: null };
-  const src = value.toString().trim();
-  const hasBraces = (
-    /^function/.test(src) ||
-    /^([^=]|\=[^>])*\=>\s*\{/.test(src)
-  );
-  const name = /^\w+$/.test(value.name) ? value.name : '';
-  const args = /^[^\(]*\=>/.test(src) ?
-    [src.substring(0, src.indexOf('=>')).trim()] :
-    src.substring(
-      src.indexOf('(') + 1,
-      src.indexOf(')')
-    ).split(',').map(a => a.trim());
-  const body = (hasBraces) ?
-     src.substring(
-       src.indexOf('{') + 1,
-       src.lastIndexOf('}')
-     ).trim() :
-     'return ' + src.substring(src.indexOf('=>') + 2).trim();
-  const parseFunc = (name, args, body) => {
-    try {
-      return eval(
-        '(function ' + (name || '') +
-        '(' + args.join(', ') + ') ' +
-        '{\n' + body + '\n})'
-      );
-    } catch (ex) { }
-  };
-  return h('div', { className: 'func-editor' },
-    rawStringEditor(name, (input.name === null ? null : input.name), (state) => {
-      if (
-        state.value !== name &&
-        /^\w+$/.test(state.value)
-      ) {
-        value = parseFunc(state.value, args, body);
-      }
-      input = (state.input === null) ? null :
-        { name: state.input };
-      update({ value, input });
-    }),
-    '(',
-    args.map((arg, argi) =>
-      rawStringEditor(arg, (input.argi === argi ? input.arg : null), (state) => {
-        if (
-          /^\w+$/.test(state.value) &&
-          !args.some((a, i) => i !== argi && a === state.value)
-        ) {
-          args[argi] = state.value;
-          value = parseFunc(name, args, body);
-        }
-        input = (state.input === null) ? null :
-          { arg: state.input, argi };
-        update({ value, input });
-      })
-    ),
-    ') {',
-    rawStringEditor(body, (input.body === null ? null : input.body), (state) => {
-      value = parseFunc(name, args, state.value);
-      input = (state.input === null) ? null :
-        { body: state.input };
-      update({ value, input });
-    }),
-    '}'
-  );
-}
-
-const funcRegex = /^function(\s|\n)*\w*(\s|\n)*\((\s|\n)*(\w+(\s|\n)*(\,\w+(\s|\n)*)*)?\)(\s|\n)*\{(.|\n)*\}$/;
-const lambdaRegex = /^(\((\s|\n)*(\w+(\s|\n)*(\,\w+(\s|\n)*)*)?\)|\w+(\s|\n)*)(\s|\n)*=>(\s|\n)*(\{(.|\n)*\}|\((.|\n)*\))$/;
-const isValidFunc = (src) => funcRegex.test(src) || lambdaRegex.test(src);
-const funcEditor = (value, input, update) => {
   input = input || value.toString();
   const parseFunc = (src) => {
-    src = src.trim().trim(';').trim();
-    if (!isValidFunc(src)) { return null; }
+    const cleanSrc = src.replace(/\/\/[^\n]*\n|\/\*(.|\n)*\*\//g, ' ').trim();
+    if (
+      !/^function\s*\w*\s*\((.|\n)*\)\s*\{(.|\n)*\}$/.test(cleanSrc) &&
+      !/^(\((.|\n)*\)|\w+)\s*=>\s*(\{(.|\n)*\}|\((.|\n)*\))$/.test(cleanSrc)
+    ) { return null; }
     try {
       const func = eval('(' + src + ')');
       return (typeof func === 'function') ? func : null;
