@@ -101,8 +101,7 @@ function createElement(node) {
   if (typeof node === 'string') {
     return document.createTextNode(node);
   } else if (node.type === 'vdom-component') {
-    const target = document.createElement('vdom-component');
-    node.component = node.constructor(node.props.initState, target);
+    node.component = node.constructor(node.props.initState);
     return node.component.getElement();
   }
   const $el = document.createElement(node.type);
