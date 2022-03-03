@@ -7,7 +7,7 @@ This _specific_ attempt (I have others) builds on web technologies (JavaScript, 
 
 ## Current Plan
 1. :white_check_mark:      Make a [simple virtual DOM engine](https://github.com/d-cook/vdom) that can be a self-contained part of this app
-2. :white_large_square:    Create a simple vdom view / editor for each type of data:
+2. :ballot_box_with_check: Create a simple vdom view / editor for each type of data:
    - :white_check_mark:      Single values like numbers, strings, booleans, null
    - :ballot_box_with_check: Compound values like lists (arrays) and records (objects)
      - :white_check_mark:      Add/remove entries
@@ -15,9 +15,9 @@ This _specific_ attempt (I have others) builds on web technologies (JavaScript, 
      - :ballot_box_with_check: Edit raw JSON
      - :white_large_square:    Collapsible
      - :white_large_square:    Insert / extract existing entities
-   - :white_check_mark:    Dynamic fields (map any value to the appropriate view)
-   - :white_large_square:  Functions
-     - How to preserve references? Pass a master context that contains everything?
+   - :white_check_mark:      Dynamic fields (map any value to the appropriate view)
+   - :ballot_box_with_check: Functions
+     - :white_large_square:    _And_ preserve references across functions (via a master context object)
 3. :white_large_square:    Bootstrap the UI/App as it exists up to this point
    - :white_large_square:    Convert the entire app into a vdom view / editor + the data to be viewed
      - :white_large_square:    Recode everything into a single top-level structure ("master context")
