@@ -3,16 +3,27 @@
 
 function flatten(value) {
   return Array.isArray(value) ? [].concat(...value.map(flatten)) : value;
-};
+}
 
 function h(type, props, ...children) {
+  props = props || {};
   children = flatten(children);
   if (typeof type === 'function') {
     const constructor = type;
     type = 'vdom-component';
-    return { type, props: props || {}, children, constructor };
+    return { type, props: props, children, constructor };
   }
-  return { type, props: props || {}, children };
+  if (!(type && type.type)) {
+    return { type, props: props, children };
+  }
+  const allProps = { ...type.props, ...props };
+  if (props.className && type.props.className) {
+    allProps.className = type.props.className + ' ' + props.className;
+  }
+  if (props.style && type.props.style) {
+    allProps.style = type.props.style + ';' + props.style;
+  }
+  return { ...type, props: allProps, children: type.children.concat(children) };
 }
 
 function setBooleanProp($target, name, value) {
@@ -417,7 +428,6 @@ const recordEditor = (value, input, path, update) => {
   );
 };
 
-
 const funcEditor = (value, input, update) => {
   input = input || value.toString();
   const parseFunc = (src) => {
@@ -440,7 +450,7 @@ const funcEditor = (value, input, update) => {
       update({ value, input });
     }, parseFunc)
   );
-};
+}
 
 const anyValueEditor = (value, input, path, update) => {
   const type = getType(value);
