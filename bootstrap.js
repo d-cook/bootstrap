@@ -11,10 +11,10 @@ function h(type, props, ...children) {
   if (typeof type === 'function') {
     const constructor = type;
     type = 'vdom-component';
-    return { type, props: props, children, constructor };
+    return { type, props, children, constructor };
   }
   if (!(type && type.type)) {
-    return { type, props: props, children };
+    return { type, props, children };
   }
   const allProps = { ...type.props, ...props };
   if (props.className && type.props.className) {
@@ -450,7 +450,7 @@ const funcEditor = (value, input, update) => {
       update({ value, input });
     }, parseFunc)
   );
-}
+};
 
 const anyValueEditor = (value, input, path, update) => {
   const type = getType(value);
