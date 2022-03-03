@@ -103,7 +103,7 @@ function createElement(node) {
   } else if (node.type === 'vdom-component') {
     const target = document.createElement('vdom-component');
     node.component = node.constructor(node.props.initState, target);
-    return node.component.getTarget();
+    return node.component.getElement();
   }
   const $el = document.createElement(node.type);
   setProps($el, node.props);
@@ -208,19 +208,20 @@ function makeComponent(render, initState, target) {
     prevContent = content;
     prevState = state;
   };
-  const getElement = (ref) => (
+  const getElementFromRef = (ref) => (
     (typeof ref === 'string'  ) ? document.querySelector(ref) :
     (typeof ref === 'function') ? ref() : ref
   );
   const appendTo = (parent) => {
-    parent = getElement(parent);
+    parent = getElementFromRef(parent);
     if (parent && parent.appendChild) {
       parent.appendChild(target);
     }
   }
-  target = getElement(target) || document.createElement('vdom-component');
+  target = getElementFromRef(target) ||
+    document.createElement('vdom-component');
   update();
-  return { update, appendTo };
+  return { update, appendTo, getElement: () => target };
 }
 
 function Component(render, defaultState) {
