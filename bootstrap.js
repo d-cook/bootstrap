@@ -608,7 +608,8 @@ div:hover > .add-button {
   background-color: white;
 }
 
-.text-editor, .colon {
+.editor-row > .text-editor,
+.editor-row > .colon {
   margin-top: -3px;
   margin-bottom: -5px;
 }
@@ -684,16 +685,26 @@ div:hover > .add-button {
   color: white;
 }
 
-.func-editor {
+.func-editor > .text-editor {
   display: flex;
   flex-direction: column;
   row-gap: 5px;
   width: min-content;
-  padding: 6px;
-  border: 2px solid #CCCC88;
-  background-color: #FFFFEE;
+  border: 2px solid #CCBB66;
+  background-color: #FFEE99;
   border-radius: 6px;
   min-width: 26px;
+}
+
+.func-editor > .text-editor:hover {
+  background-color: #FFFFBB;
+  border-color: #FFCC66;
+}
+
+.func-editor > .text-editor:focus {
+  background-color: white;
+  border-color: #DD8800;
+  outline: none;
 }
 
 .changed {
