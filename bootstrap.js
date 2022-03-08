@@ -619,19 +619,11 @@ div:hover > .add-button {
 }
 
 .cycle-indicator {
-  display: flex;
   color: #CC4400;
   font-weight: bold;
-  background-color: #FFEECC;
   font-family: monospace;
   letter-spacing: -1;
-  border: solid 1px #CC4400;
-  border-radius: 4px;
-  padding: 0 2px;
-  margin: -2px 0 -2px 2px;
-  justify-content: center;
-  align-items: center;
-  width: min-content;
+  margin-left: 4px;
 }
 
 .list-editor {
