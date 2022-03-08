@@ -312,7 +312,10 @@ const textEditor = (value, input, update, isValid) => {
         saveValidChanges();
       }
       if (key === 'Escape') {
+        // TODO: These are really just needed for func-editor
         document.activeElement.blur();
+        document.activeElement.scrollTop = 0;
+        document.activeElement.scrollLeft = 0;
         update({ value, input: value });
       }
     }
@@ -687,6 +690,14 @@ div:hover > .add-button {
   background-color: #FFEE99;
   border-radius: 6px;
   min-width: 26px;
+  min-height: 20px;
+  white-space: nowrap;
+  /* minimized view: */
+  max-width: 200px;
+  max-height: 150px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  font-size: 8px;
 }
 
 .func-editor > .text-editor:hover {
@@ -703,6 +714,12 @@ div:hover > .add-button {
   width: calc(100% - 42px);
   height: calc(100% - 42px);
   outline: none;
+  /* un-minimized view: */
+  max-width: initial;
+  max-height: initial;
+  overflow-x: auto;
+  overflow-y: auto;
+  font-size: initial;
 }
 
 .changed {
