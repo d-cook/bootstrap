@@ -312,6 +312,7 @@ const textEditor = (value, input, update, isValid) => {
         saveValidChanges();
       }
       if (key === 'Escape') {
+        document.activeElement.blur();
         update({ value, input: value });
       }
     }
@@ -696,6 +697,11 @@ div:hover > .add-button {
 .func-editor > .text-editor:focus {
   background-color: white;
   border-color: #DD8800;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: calc(100% - 42px);
+  height: calc(100% - 42px);
   outline: none;
 }
 
