@@ -1,13 +1,16 @@
+const $ = {}; // Root context
+$.$ = $;
+
 //------------------------------------------------
 //VDOM
 
-function flatten(value) {
-  return Array.isArray(value) ? [].concat(...value.map(flatten)) : value;
-}
+$.flatten = (value) => {
+  return Array.isArray(value) ? [].concat(...value.map($.flatten)) : value;
+};
 
-function h(type, props, ...children) {
+$.h = (type, props, ...children) => {
   props = props || {};
-  children = flatten(children);
+  children = $.flatten(children);
   if (typeof type === 'function') {
     const constructor = type;
     type = 'vdom-component';
@@ -24,161 +27,161 @@ function h(type, props, ...children) {
     allProps.style = type.props.style + ';' + props.style;
   }
   return { ...type, props: allProps, children: type.children.concat(children) };
-}
+};
 
-function setBooleanProp($target, name, value) {
+$.setBooleanProp = (element, name, value) => {
   if (value) {
-    $target.setAttribute(name, name);
-    $target[name] = true;
+    element.setAttribute(name, name);
+    element[name] = true;
   } else {
-    $target.removeAttribute(name);
-    $target[name] = false;
+    element.removeAttribute(name);
+    element[name] = false;
   }
-}
+};
 
-function isEventProp(name) {
+$.isEventProp = (name) => {
   return /^on/.test(name);
-}
+};
 
-function extractEventName(name) {
+$.extractEventName = (name) => {
   return name.slice(2).toLowerCase();
-}
+};
 
-function isCustomProp(name) {
+$.isCustomProp = (name) => {
   return ['key', 'component', 'initState'].includes(name);
-}
+};
 
-function setProp($target, name, value) {
-  if (isCustomProp(name)) {
+$.setProp = (element, name, value) => {
+  if ($.isCustomProp(name)) {
     return;
   } else if (name === 'className') {
-    $target.setAttribute('class', value);
+    element.setAttribute('class', value);
   } else if (name === 'value') {
-    $target.value = value;
-  } else if (isEventProp(name)) {
+    element.value = value;
+  } else if ($.isEventProp(name)) {
     const event = (typeof value === 'function') ? value : null;
-    $target[name.toLowerCase()] = event;
+    element[name.toLowerCase()] = event;
   } else if (typeof value === 'boolean') {
-    setBooleanProp($target, name, value);
+    $.setBooleanProp(element, name, value);
   } else {
-    $target.setAttribute(name, value);
+    element.setAttribute(name, value);
   }
-}
+};
 
-function removeProp($target, name, value) {
-  if (isCustomProp(name)) {
+$.removeProp = (element, name, value) => {
+  if ($.isCustomProp(name)) {
     return;
   } else if (name === 'className') {
-    $target.removeAttribute('class');
+    element.removeAttribute('class');
   } else if (name === 'value') {
-    $target.value = '';
-  } else if (isEventProp(name)) {
-    $target[name.toLowerCase()] = null;
+    element.value = '';
+  } else if ($.isEventProp(name)) {
+    element[name.toLowerCase()] = null;
   } else if (typeof value === 'boolean') {
-    setBooleanProp($target, name, false);
+    $.setBooleanProp(element, name, false);
   } else {
-    $target.removeAttribute(name);
+    element.removeAttribute(name);
   }
-}
+};
 
-function setProps($target, props) {
+$.setProps = (element, props) => {
   Object.keys(props).forEach(name => {
-    setProp($target, name, props[name]);
+    $.setProp(element, name, props[name]);
   });
-}
+};
 
-function isNothing(val) {
+$.isNothing = (val) => {
   return val === null || (typeof val === 'undefined');
-}
+};
 
-function updateProp($target, name, newVal, oldVal) {
-  if (isNothing(newVal)) {
-    removeProp($target, name, oldVal);
-  } else if (isNothing(oldVal) || newVal !== oldVal) {
-    setProp($target, name, newVal);
-  } else if (name === 'value' && newVal !== $target.value) {
-    setProp($target, name, newVal);
+$.updateProp = (element, name, newVal, oldVal) => {
+  if ($.isNothing(newVal)) {
+    $.removeProp(element, name, oldVal);
+  } else if ($.isNothing(oldVal) || newVal !== oldVal) {
+    $.setProp(element, name, newVal);
+  } else if (name === 'value' && newVal !== element.value) {
+    $.setProp(element, name, newVal);
   }
-}
+};
 
-function updateProps($target, newProps, oldProps = {}) {
+$.updateProps = (element, newProps, oldProps = {}) => {
   const props = Object.assign({}, newProps, oldProps);
   Object.keys(props).forEach(name => {
-    updateProp($target, name, newProps[name], oldProps[name]);
+    $.updateProp(element, name, newProps[name], oldProps[name]);
   });
-}
+};
 
-function createElement(node) {
+$.createElement = (node) => {
   if (typeof node === 'string') {
     return document.createTextNode(node);
   } else if (node.type === 'vdom-component') {
     node.component = node.constructor(node.props.initState);
     return node.component.getElement();
   }
-  const $el = document.createElement(node.type);
-  setProps($el, node.props);
+  const element = document.createElement(node.type);
+  $.setProps(element, node.props);
   node.children
-    .map(createElement)
-    .forEach($el.appendChild.bind($el));
-  return $el;
-}
+    .map($.createElement)
+    .forEach(el => element.appendChild(el));
+  return element;
+};
 
-function hasChanged(node1, node2) {
+$.hasChanged = (node1, node2) => {
   return typeof node1 !== typeof node2 ||
          typeof node1 === 'string' && node1 !== node2 ||
          node1.type !== node2.type ||
          node1.constructor !== node2.constructor;
-}
+};
 
-function updateElement($parent, newNode, oldNode, index = 0) {
-  if (isNothing(oldNode)) {
-    if (isNothing(newNode)) { return; }
-    if (index < $parent.childNodes.length) {
-      $parent.insertBefore(
-        createElement(newNode),
-        $parent.childNodes[index]
+$.updateElement = (parent, newNode, oldNode, index = 0) => {
+  if ($.isNothing(oldNode)) {
+    if ($.isNothing(newNode)) { return; }
+    if (index < parent.childNodes.length) {
+      parent.insertBefore(
+        $.createElement(newNode),
+        parent.childNodes[index]
       );
     } else {
-      $parent.appendChild(
-        createElement(newNode)
+      parent.appendChild(
+        $.createElement(newNode)
       );
     }
-  } else if (isNothing(newNode)) {
-    $parent.removeChild(
-      $parent.childNodes[index]
+  } else if ($.isNothing(newNode)) {
+    parent.removeChild(
+      parent.childNodes[index]
     );
-  } else if (hasChanged(newNode, oldNode)) {
-    $parent.replaceChild(
-      createElement(newNode),
-      $parent.childNodes[index]
+  } else if ($.hasChanged(newNode, oldNode)) {
+    parent.replaceChild(
+      $.createElement(newNode),
+      parent.childNodes[index]
     );
   } else if (newNode.type === 'vdom-component') {
     newNode.component = oldNode.component;
     newNode.component.update();
   } else if (newNode.type) {
-    updateProps(
-      $parent.childNodes[index],
+    $.updateProps(
+      parent.childNodes[index],
       newNode.props,
       oldNode.props
     );
-    updateElements(
-      $parent.childNodes[index],
+    $.updateElements(
+      parent.childNodes[index],
       newNode.children,
       oldNode.children
     );
   }
-}
+};
 
-function getKey(node, i) {
+$.getKey = (node, i) => {
   return (node && node.props && node.props.key) || '#' + i;
-}
+};
 
-function matchNodes(newNodes, oldNodes) {
+$.matchNodes = (newNodes, oldNodes) => {
   let ni = 0;
   let pairs = [];
-  const newKeys = newNodes.map(getKey);
+  const newKeys = newNodes.map($.getKey);
   oldNodes.forEach((on, oi) => {
-    let mi = newKeys.indexOf(getKey(on, oi), ni);
+    let mi = newKeys.indexOf($.getKey(on, oi), ni);
     if (mi < 0) {
       pairs.push([null, on]);
     } else {
@@ -191,29 +194,29 @@ function matchNodes(newNodes, oldNodes) {
     pairs = pairs.concat(newNodes.slice(ni).map(v => [v, null]));
   }
   return pairs;
-}
+};
 
-function updateElements($parent, newNodes, oldNodes) {
-  const nodePairs = matchNodes(newNodes, oldNodes);
+$.updateElements = (parent, newNodes, oldNodes) => {
+  const nodePairs = $.matchNodes(newNodes, oldNodes);
   let removedCount = 0;
   nodePairs.forEach((pair, i) => {
     const [n, o] = pair;
-    updateElement($parent, n, o, i - removedCount);
-    if (isNothing(n)) { removedCount++; }
+    $.updateElement(parent, n, o, i - removedCount);
+    if ($.isNothing(n)) { removedCount++; }
   });
-}
+};
 
-function makeComponent(render, initState, target) {
+$.makeComponent = (render, initState, target) => {
   let prevState = initState || {};
   let prevContent = null;
   const update = (state) => {
     state = state || prevState;
     let content = render(state, update);
     if (Array.isArray(content)) {
-      content = flatten(content);
-      updateElements(target, content, prevContent || []);
+      content = $.flatten(content);
+      $.updateElements(target, content, prevContent || []);
     } else {
-      updateElement(target, content, prevContent);
+      $.updateElement(target, content, prevContent);
     }
     prevContent = content;
     prevState = state;
@@ -232,20 +235,20 @@ function makeComponent(render, initState, target) {
     document.createElement('vdom-component');
   update();
   return { update, appendTo, getElement: () => target };
-}
+};
 
-function Component(render, defaultState) {
-  return (initState, target) => makeComponent(
+$.Component = (render, defaultState) => {
+  return (initState, target) => $.makeComponent(
     render,
     initState || defaultState,
     target
   );
-}
+};
 
 //---------------------------------------------------------
 //UI APP
 
-const getType = (value) => {
+$.getType = (value) => {
   const type = typeof value;
   if (['string', 'number', 'function'].includes(type)) { return type; }
   if (type === 'boolean') { return 'bool'; }
@@ -254,34 +257,34 @@ const getType = (value) => {
   return 'record';
 };
 
-const isListOrRecord = (value) => {
-  const type = getType(value);
+$.isListOrRecord = (value) => {
+  const type = $.getType(value);
   return type === 'list' || type === 'record';
 };
 
-const removeItem = (items, i) => {
+$.removeItem = (items, i) => {
   items.splice(i, 1); return items;
 };
 
-const insertItem = (items, i, item) => {
+$.insertItem = (items, i, item) => {
   items.splice(i, 0, item); return items;
 };
 
-const xButton = (onClick) => {
-  return h('button', { className: 'x-button', onClick }, 'X')
+$.xButton = (onClick) => {
+  return $.h('button', { className: 'x-button', onClick }, 'X')
 };
 
-const cycleIndicator = (depth) => {
-  return h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
+$.cycleIndicator = (depth) => {
+  return $.h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
 };
 
-const valueEditorOrCycle = (value, input, path, update) => {
+$.valueEditorOrCycle = (value, input, path, update) => {
   const parentIdx = path.indexOf(value);
-  return (parentIdx >= 0) ? cycleIndicator(path.length - parentIdx) :
-    anyValueEditor(value, input, path.concat([value]), update);
+  return (parentIdx >= 0) ? $.cycleIndicator(path.length - parentIdx) :
+    $.anyValueEditor(value, input, path.concat([value]), update);
 };
 
-const textEditor = (value, input, update, isValid) => {
+$.textEditor = (value, input, update, isValid) => {
   if (typeof input !== 'string') { input = value; }
   if (typeof isValid !== 'function') { isValid = () => true; }
   const isChanged = () => (input !== value);
@@ -295,7 +298,7 @@ const textEditor = (value, input, update, isValid) => {
       update({ value: input, input });
     }
   };
-  return h('textarea', {
+  return $.h('textarea', {
     className: 'text-editor' + (
       !isValid(input) ? ' error' :
       isChanged( ) ? ' changed' : ''
@@ -322,13 +325,13 @@ const textEditor = (value, input, update, isValid) => {
   });
 };
 
-const jsonEditor = (value, input, update) => {
+$.jsonEditor = (value, input, update) => {
   const json = JSON.stringify(value, null, 2);
   const updateJson = ({ value, input }) => {
     try {
       if (value !== json) { input = input.trim(); }
       value = JSON.parse(value);
-      if (isListOrRecord(value)) { input = null; }
+      if ($.isListOrRecord(value)) { input = null; }
     } catch(ex) { }
     update({ value, input });
   };
@@ -336,19 +339,19 @@ const jsonEditor = (value, input, update) => {
     try { JSON.parse(text); return true; }
     catch(ex) { return false; }
   };
-  return textEditor(json, input, updateJson, isValid)
+  return $.textEditor(json, input, updateJson, isValid)
 };
 
-const listEditor = (value, input, path, update) => {
+$.listEditor = (value, input, path, update) => {
   input = input || { i: -1 };
-  return h('div', { className: 'list-editor' },
+  return $.h('div', { className: 'list-editor' },
     value.map((v, i) =>
-      h('div', { key: i, className: 'editor-row' },
-        xButton(() => {
-          value = removeItem(value, i);
+      $.h('div', { key: i, className: 'editor-row' },
+        $.xButton(() => {
+          value = $.removeItem(value, i);
           update({ value, input: null });
         }),
-        valueEditorOrCycle(
+        $.valueEditorOrCycle(
           v,
           (input.i === i ? input.value : null),
           path,
@@ -361,7 +364,7 @@ const listEditor = (value, input, path, update) => {
         )
       )
     ),
-    h('button', {
+    $.h('button', {
       className: 'add-button',
       onClick: (e) => {
         const nums = value.filter(n => parseInt(n) === n);
@@ -373,16 +376,16 @@ const listEditor = (value, input, path, update) => {
   );
 };
 
-const recordEditor = (value, input, path, update) => {
+$.recordEditor = (value, input, path, update) => {
   input = input || { k: null, v: null };
-  return h('div', { className: 'record-editor' },
+  return $.h('div', { className: 'record-editor' },
     Object.entries(value).map(([k, v], i) =>
-      h('div', { key: i, className: 'editor-row' },
-        xButton(() => {
+      $.h('div', { key: i, className: 'editor-row' },
+        $.xButton(() => {
           delete value[k];
           update({ value, input: null });
         }),
-        textEditor(k, (input.k === k ? input.value : null), (state) => {
+        $.textEditor(k, (input.k === k ? input.value : null), (state) => {
           input = (state.input === null) ? null :
             { k: state.value, value: state.input };
           if (state.value !== k) {
@@ -401,8 +404,8 @@ const recordEditor = (value, input, path, update) => {
           }
           update({ input, value });
         }),
-        h('span', { className: 'colon' }, ':'),
-        valueEditorOrCycle(
+        $.h('span', { className: 'colon' }, ':'),
+        $.valueEditorOrCycle(
           v,
           (input.v === v ? input.value : null),
           path,
@@ -415,7 +418,7 @@ const recordEditor = (value, input, path, update) => {
         )
       )
     ),
-    h('button', {
+    $.h('button', {
       className: 'add-button',
       onClick: (e) => {
         const allKeys = Object.keys(value);
@@ -432,7 +435,7 @@ const recordEditor = (value, input, path, update) => {
   );
 };
 
-const funcEditor = (value, input, update) => {
+$.funcEditor = (value, input, update) => {
   input = input || value.toString();
   const parseFunc = (src) => {
     const cleanSrc = src.replace(/\/\/[^\n]*\n|\/\*(.|\n)*\*\//g, ' ').trim();
@@ -445,8 +448,8 @@ const funcEditor = (value, input, update) => {
       return (typeof func === 'function') ? func : null;
     } catch (ex) { }
   };
-  return h('div', { className: 'func-editor' },
-    textEditor(value.toString(), input, (state) => {
+  return $.h('div', { className: 'func-editor' },
+    $.textEditor(value.toString(), input, (state) => {
       if (state.value !== value.toString()) {
         value = parseFunc(state.value) || value;
       }
@@ -456,21 +459,21 @@ const funcEditor = (value, input, update) => {
   );
 };
 
-const anyValueEditor = (value, input, path, update) => {
-  const type = getType(value);
+$.anyValueEditor = (value, input, path, update) => {
+  const type = $.getType(value);
   return (
-    (type === 'list'    ) ? listEditor  (value, input, path, update) :
-    (type === 'record'  ) ? recordEditor(value, input, path, update) :
-    (type === 'function') ? funcEditor  (value, input, update) :
-                            jsonEditor  (value, input, update)
+    (type === 'list'    ) ? $.listEditor  (value, input, path, update) :
+    (type === 'record'  ) ? $.recordEditor(value, input, path, update) :
+    (type === 'function') ? $.funcEditor  (value, input, update) :
+                            $.jsonEditor  (value, input, update)
   );
 };
 
-const ValueEditor = Component(({ value, input }, update) => {
-  return anyValueEditor(value, input, [value], update);
+$.ValueEditor = $.Component(({ value, input }, update) => {
+  return $.anyValueEditor(value, input, [value], update);
 }, { value: null });
 
-const GlobalCssEditor = Component(({ css }, update) => {
+$.GlobalCssEditor = $.Component(({ css }, update) => {
   const head = document.getElementsByTagName('head')[0];
   let styleTag = head.getElementsByTagName('style')[0];
   if (!styleTag) {
@@ -482,9 +485,9 @@ const GlobalCssEditor = Component(({ css }, update) => {
   const cols = Math.max(...lines.map(L => L.length));
   const rows = lines.length;
   return (
-    h('div', { className: 'css-editor' },
-      h('p', {}, 'Global CSS:'),
-      h('textarea', {
+    $.h('div', { className: 'css-editor' },
+      $.h('p', {}, 'Global CSS:'),
+      $.h('textarea', {
         rows, cols,
         onInput: (e) => {
           css = e.target.value;
@@ -495,7 +498,7 @@ const GlobalCssEditor = Component(({ css }, update) => {
   );
 }, { css: '' });
 
-const globalCss = `
+$.globalCss = `
 body {
   display: grid;
   grid-template-columns:
@@ -733,9 +736,9 @@ div:hover > .add-button {
 }
 `.trim();
 
-function initialize() {
+$.initialize = () => {
   window.onload = () => {
-    GlobalCssEditor({ css: globalCss }).appendTo(document.body);
+    $.GlobalCssEditor({ css: $.globalCss }).appendTo(document.body);
     var list = [ 4, 5 ];
     var obj = { w: 'six' };
     var xyz = { x: 3, y: list, z: obj };
@@ -743,7 +746,7 @@ function initialize() {
     obj.self = obj;
     list.push(xyz);
     var editors = [value, value, xyz, list, obj].map(v => {
-      var ve = ValueEditor({ value: v });
+      var ve = $.ValueEditor({ value: v });
       ve.appendTo(document.body);
       return ve;
     });
@@ -751,11 +754,11 @@ function initialize() {
   };
 };
 
-initialize();
+$.initialize();
 
 // ------------- bootstrapper ------
 
-const bootstrap = () => {
+$.bootstrap = () => {
   const registry = [];
   const register = (value, ref = null) => {
     if (!isListOrRecord(value)) { return [value]; }
@@ -818,8 +821,7 @@ const bootstrap = () => {
     );
     return [decl, ...assigns].join('\n');
   };
-  const allTheThings = {}; // TODO: make this hold all the things
-  allTheThings.forEach(t => register(t));
+  register($);
   const code = registry.map(getCode).concat('initialize()').join('\n');
   // TODO: something with the code. For now, just return it
   return code;
