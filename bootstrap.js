@@ -1,5 +1,6 @@
 const $ = {}; // Root context
 $.$ = $;
+$.testInput = ["Try entering JSON here!"]
 
 //------------------------------------------------
 //VDOM
@@ -469,36 +470,38 @@ $.anyValueEditor = (value, input, path, update) => {
   );
 };
 
-$.ValueEditor = $.Component(({ value, input }, update) => {
-  return $.anyValueEditor(value, input, [value], update);
-}, { value: null });
 
-$.GlobalCssEditor = $.Component(({ css }, update) => {
-  const head = document.getElementsByTagName('head')[0];
-  let styleTag = head.getElementsByTagName('style')[0];
-  if (!styleTag) {
-    styleTag = document.createElement('style');
-    head.appendChild(styleTag);
-  }
-  styleTag.innerHTML = css;
-  const lines = css.split('\n');
-  const cols = Math.max(...lines.map(L => L.length));
-  const rows = lines.length;
-  return (
-    $.h('div', { className: 'css-editor' },
-      $.h('p', {}, 'Global CSS:'),
-      $.h('textarea', {
-        rows, cols,
-        onInput: (e) => {
-          css = e.target.value;
-          update({ css });
-        }
-      }, css)
-    )
-  );
-}, { css: '' });
+$.initialize = () => {
+  const ValueEditor = $.Component(({ value, input }, update) => {
+    return $.anyValueEditor(value, input, [value], update);
+  }, { value: null });
 
-$.globalCss = `
+  const GlobalCssEditor = $.Component(({ css }, update) => {
+    const head = document.getElementsByTagName('head')[0];
+    let styleTag = head.getElementsByTagName('style')[0];
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = css;
+    const lines = css.split('\n');
+    const cols = Math.max(...lines.map(L => L.length));
+    const rows = lines.length;
+    return (
+      $.h('div', { className: 'css-editor' },
+        $.h('p', {}, 'Global CSS:'),
+        $.h('textarea', {
+          rows, cols,
+          onInput: (e) => {
+            css = e.target.value;
+            update({ css });
+          }
+        }, css)
+      )
+    );
+  }, { css: '' });
+
+  const globalCss = `
 body {
   display: grid;
   grid-template-columns:
@@ -506,15 +509,12 @@ body {
   column-gap: 8px;
   row-gap: 8px;
 }
-
 body > :first-child {
   grid-row: 1 / 99;
 }
-
 button {
   cursor: pointer;
 }
-
 .css-editor {
   border-radius: 4px;
   border: solid 2px #CCCCCC;
@@ -523,12 +523,10 @@ button {
   height: min-content;
   padding: 0;
 }
-
 .css-editor p {
   margin: 0;
   margin-left: 2px;
 }
-
 .css-editor textarea {
   outline: none;
   font-size: 13px;
@@ -541,7 +539,6 @@ button {
   display: flex;
   resize: none;
 }
-
 .x-button {
   display: none;
   position: absolute;
@@ -556,16 +553,13 @@ button {
   margin-left: -4px;
   margin-top: -4px;
 }
-
 .editor-row:hover > .x-button {
   display: initial;
 }
-
 .x-button:hover {
   color: white;
   background-color: red;
 }
-
 .add-button {
   display: none;
   border: 1px solid #AAAAAA;
@@ -583,48 +577,39 @@ button {
   justify-content: center;
   align-items: center;
 }
-
 div:hover > .add-button {
   display: flex;
 }
-
 .add-button:first-child {
   margin-top: 3px;
   margin-bottom: -13px
 }
-
 .add-button:hover {
   background-color: #AAAAAA;
   color: white;
 }
-
 .text-editor {
   font-family: monospace;
   border: solid 2px transparent;
   border-radius: 4px;
   background: none;
 }
-
 .text-editor:hover {
   border-color: rgba(0,0,0,0.2);
   background-color: rgba(255,255,255,0.7);
 }
-
 .text-editor:focus {
   border-color: black;
   background-color: white;
 }
-
 .editor-row > .text-editor,
 .editor-row > .colon {
   margin-top: -3px;
   margin-bottom: -5px;
 }
-
 .colon + .text-editor, .colon {
   margin-left: -2px;
 }
-
 .cycle-indicator {
   color: #CC4400;
   font-weight: bold;
@@ -632,7 +617,6 @@ div:hover > .add-button {
   letter-spacing: -1;
   margin-left: 4px;
 }
-
 .list-editor {
   display: flex;
   flex-direction: column;
@@ -644,17 +628,14 @@ div:hover > .add-button {
   border-radius: 6px;
   min-width: 26px;
 }
-
 .list-editor > .add-button {
   border-color: blue;
   color: blue;
 }
-
 .list-editor > .add-button:hover {
   background-color: blue;
   color: white;
 }
-
 .record-editor {
   display: flex;
   flex-direction: column;
@@ -666,24 +647,20 @@ div:hover > .add-button {
   border-radius: 6px;
   min-width: 26px;
 }
-
 .record-editor > div {
   display: flex;
   flex-direction: row;
   align-items: start;
   column-gap: 2px;
 }
-
 .record-editor > .add-button {
   border-color: green;
   color: green;
 }
-
 .record-editor > .add-button:hover {
   background-color: green;
   color: white;
 }
-
 .func-editor > .text-editor {
   display: flex;
   flex-direction: column;
@@ -702,12 +679,10 @@ div:hover > .add-button {
   overflow-y: hidden;
   font-size: 8px;
 }
-
 .func-editor > .text-editor:hover {
   background-color: #FFFFBB;
   border-color: #FFCC66;
 }
-
 .func-editor > .text-editor:focus {
   background-color: white;
   border-color: #DD8800;
@@ -724,33 +699,65 @@ div:hover > .add-button {
   overflow-y: auto;
   font-size: initial;
 }
-
 .changed {
   color: #004488 !important;
   background-color: #DDFFFF !important;
 }
-
 .error {
   color: #880000 !important;
   background-color: #FFCCCC !important;
 }
-`.trim();
+.console {
+  display: flex;
+  flex-direction: column;
+  background-color: #F8F8F8;
+  border: 2px solid black;
+  border-radius: 6px;
+  padding: 2px;
+  row-gap: 4px;
+}
+.console textarea,
+.console .result {
+  background-color: white;
+  border: 2px solid #888888;
+  min-width: 250px;
+  min-height: 40px;
+  margin: 0;
+}
+.console button {
+  align-self: flex-start;
+}
+  `.trim();
 
-$.initialize = () => {
+  const JSConsole = $.Component(({ value, input, result }, update) => {
+    let output = '';
+    try { output = JSON.stringify(result); }
+    catch (ex) { output = String(result); }
+    const textDiv = document.createElement('div');
+    textDiv.textContent = String(output);
+    output = textDiv.innerHTML;
+    return $.h('div', { className: 'console' }, 'CONSOLE:',
+      $.textEditor(value, input, (state) => {
+        value = input = state.input;
+        update({ value, input, result });
+      }),
+      $.h('button', {
+        type: 'button',
+        onClick: () => {
+          let result = undefined;
+          try { eval('(result = (' + value + '));'); }
+          catch (ex) { result = ex.toString(); }
+          update({ value, input, result });
+        }
+      }, '> RUN'),
+      $.h('pre', { className: 'result' }, output)
+    );
+  }, { value: 'alert("Hello, world!")' });
+
   window.onload = () => {
-    $.GlobalCssEditor({ css: $.globalCss }).appendTo(document.body);
-    var list = [ 4, 5 ];
-    var obj = { w: 'six' };
-    var xyz = { x: 3, y: list, z: obj };
-    var value = [1, 2, xyz, 'seven', 'eight', () => {}, function abc(a,b,c) { return 123; }];
-    obj.self = obj;
-    list.push(xyz);
-    var editors = [value, value, xyz, list, obj].map(v => {
-      var ve = $.ValueEditor({ value: v });
-      ve.appendTo(document.body);
-      return ve;
-    });
-    setInterval(() => editors.forEach(e => e.update()), 200);
+    GlobalCssEditor({ css: globalCss }).appendTo(document.body);
+    ValueEditor({ value: $ }).appendTo(document.body);
+    JSConsole().appendTo(document.body);
   };
 };
 
@@ -761,7 +768,7 @@ $.initialize();
 $.bootstrap = () => {
   const registry = [];
   const register = (value, ref = null) => {
-    if (!isListOrRecord(value)) { return [value]; }
+    if (!$.isListOrRecord(value)) { return [value]; }
     let idx = registry.findIndex(r => r.value === value);
     if (idx >= 0) {
       if (ref) { registry[idx].refs.push(ref); }
