@@ -733,18 +733,94 @@ div:hover > .add-button {
 }
 `.trim();
 
-window.onload = () => {
-  GlobalCssEditor({ css: globalCss }).appendTo(document.body);
-  var list = [ 4, 5 ];
-  var obj = { w: 'six' };
-  var xyz = { x: 3, y: list, z: obj };
-  var value = [1, 2, xyz, 'seven', 'eight', () => {}, function abc(a,b,c) { return 123; }];
-  obj.self = obj;
-  list.push(xyz);
-  var editors = [value, value, xyz, list, obj].map(v => {
-    var ve = ValueEditor({ value: v });
-    ve.appendTo(document.body);
-    return ve;
-  });
-  setInterval(() => editors.forEach(e => e.update()), 200);
+function initialize() {
+  window.onload = () => {
+    GlobalCssEditor({ css: globalCss }).appendTo(document.body);
+    var list = [ 4, 5 ];
+    var obj = { w: 'six' };
+    var xyz = { x: 3, y: list, z: obj };
+    var value = [1, 2, xyz, 'seven', 'eight', () => {}, function abc(a,b,c) { return 123; }];
+    obj.self = obj;
+    list.push(xyz);
+    var editors = [value, value, xyz, list, obj].map(v => {
+      var ve = ValueEditor({ value: v });
+      ve.appendTo(document.body);
+      return ve;
+    });
+    setInterval(() => editors.forEach(e => e.update()), 200);
+  };
+};
+
+initialize();
+
+// ------------- bootstrapper ------
+
+const bootstrap = () => {
+  const registry = [];
+  const register = (value, ref = null) => {
+    if (!isListOrRecord(value)) { return [value]; }
+    let idx = registry.findIndex(r => r.value === value);
+    if (idx >= 0) {
+      if (ref) { registry[idx].refs.push(ref); }
+      return idx;
+    }
+    const reg = { value, refs: ref ? [ref] : [] };
+    idx = registry.length;
+    registry.push(reg);
+    const addEntry = (k, v) => register(v, [idx, k]);
+    reg.entries = (Array.isArray(value)
+      ? value.map((v, i) => addEntry(i, v))
+      : Object.fromEntries(
+          Object.entries(value).map(
+            ([k, v]) => [k, addEntry(k, v)]
+          )
+        )
+    );
+    return idx;
+  };
+  const getLiteral = (entry, rootIdx, tab = '') => {
+    if (typeof entry !== number) {
+      return tab + JSON.stringify(entry[0]);
+    }
+    if (entry < rootIdx) { return '_' + entry; }
+    if (entry >= rootIdx) { return ''; }
+    const obj = registry[entry].value;
+    const tab2 = tab + '  ';
+    if (Array.isArray(obj)) {
+      const lines = obj.map(v => getLiteral(v, rootIdx, tab2));
+      return tab + '[\n' + lines.join(',\n') + '\n' + tab + ']';
+    }
+    const lines = (Object.entries(obj)
+      .map(([k, v]) => [k, getLiteral(v, rootIdx, tab2)])
+      .filter(kv => kv[1])
+      .map(([k, v]) => tab2 + JSON.stringify(k) + ': ' + v.trimStart())
+    );
+    return tab + '{\n' + entries.join(',\n') + '\n' + tab + '}';
+  };
+  const getRefCode = ([idx, key]) => {
+    const reg = registry[idx];
+    const varName = (reg.refs.length !== 1
+      ? '_' + idx
+      : getRefCode(reg.refs[0])
+    );
+    const fieldAccess = (key || key === 0
+      ? '[' + JSON.stringify(key) + ']'
+      : ''
+    );
+    return varName + fieldAccess;
+  };
+  const getCode = (entry, idx) => {
+    const decl = 'const _' + idx + ' = ' + getLiteral(entry, idx) + ';';
+    if (entry.refs.length < 2) { return decl; }
+    const assigns = (entry.refs
+      .filter(r => r[0] <= idx)
+      .map(r => getRefCode(r) + ' = ' + getRefCode([idx]))
+    );
+    return [decl, ...assigns].join('\n');
+  };
+  const allTheThings = {}; // TODO: make this hold all the things
+  allTheThings.forEach(t => register(t));
+  const code = registry.map(getCode).concat('initialize()').join('\n');
+  // TODO: something with the code. For now, just return it
+  return code;
 };
