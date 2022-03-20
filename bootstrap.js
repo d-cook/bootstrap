@@ -794,51 +794,32 @@ div:hover > .add-button {
   }, { value: 'alert("Hello, world!")' });
   
   const Regenerator = $.Component(() => {
-    const regeneratePage = () => {
-      const bootstrapCode = $.generateBootstrapCode();
-      const bootScript = $.createElement($.h('script', {
-        type: 'application/javascript'
-      }));
-      bootScript.innerHTML = '\n' + bootstrapCode + '\n';
-      const title = document.head.querySelector('title').innerHTML;
-      document.head.innerHTML = '<title>' + title + '</title>';
-      document.body.innerHTML = '';
-      setTimeout(() => document.head.appendChild(bootScript));
-    };
-    const downloadHTML = () => {
-      const htmlContent = ['<html>' + document.head.outerHTML + '<body></body></html>'];
-      const blob = new Blob(htmlContent, { type: 'text/html' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'bootstrap.html';
-      link.click();
-    };
-    const downloadJS = () => {
-      const jsContent = [document.head.querySelector('script').innerHTML];
-      const blob = new Blob(jsContent, { type: 'application/javascript' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'bootstrap.js';
-      link.click();
-    };
     return $.h('div', { className: 'regenerator' },
       $.h('div', {}, 'Regenerate the entire app in its current state?'),
       $.h('button', {
         type: 'button',
-        onClick: regeneratePage
+        onClick: $.regeneratePage
       }, 'Regenerate the page from scratch!'),
       $.h('button', {
         type: 'button',
         onClick: () => {
-          regeneratePage();
-          setTimeout(downloadHTML, 200);
+          $.regeneratePage();
+          setTimeout(() => {
+            const title = '<title>' + document.title + '</title>';
+            const script = document.head.querySelector('script').outerHTML;
+            const html = '<html>' + title + script + '<body></body></html>';
+            $.download(html, 'text/html', 'bootstrap.html');
+          }, 200);
         }
       }, 'Download as self-bootstrapping HTML document'),
       $.h('button', {
         type: 'button',
         onClick: () => {
-          regeneratePage();
-          setTimeout(downloadJS, 200);
+          $.regeneratePage();
+          setTimeout(() => {
+            const code = document.head.querySelector('script').innerHTML;
+            $.download(code, 'application/javascript', 'bootstrap.js');
+          }, 200);
         }
       }, 'Download as self-bootstrapping JavaScript document')
     );
@@ -858,6 +839,28 @@ $.afterWindowLoad = (callback) => {
   } else {
     window.addEventListener("load", callback);
   }
+};
+
+$.download = (content, type, fileName) => {
+  const blob = new Blob([content], { type });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  link.click();
+};
+
+$.regeneratePage = () => {
+  const bootstrapCode = $.generateBootstrapCode();
+  const bootScript = $.createElement($.h('script', {
+    type: 'application/javascript'
+  }));
+  bootScript.innerHTML = '\n' + bootstrapCode + '\n';
+  const regen = ' (regenerated)';
+  const title = (document.title || 'Bootstrap').trim();
+  document.head.innerHTML = '';
+  document.body.innerHTML = '';
+  document.title = title.endsWith(regen) ? title : title + regen;
+  setTimeout(() => document.head.appendChild(bootScript));
 };
 
 $.initialize();
