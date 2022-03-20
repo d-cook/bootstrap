@@ -525,15 +525,52 @@ $.initialize = () => {
 body {
   display: grid;
   grid-template-columns:
-    1fr 1fr 1fr 1fr;
+    auto 1fr;
   column-gap: 8px;
   row-gap: 8px;
 }
 body > :first-child {
   grid-row: 1 / 99;
+  grid-column: 1;
 }
 button {
   cursor: pointer;
+}
+.regenerator {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 2px solid #C00;
+  border-radius: 4px;
+  padding: 4px;
+  background: #FEE;
+}
+.regenerator button {
+  font-weight: bold;
+  background-color: #FAA;
+  border: 2px solid #C66;
+  border-radius: 4px;
+  color: #800;
+}
+.console {
+  display: flex;
+  flex-direction: column;
+  background-color: #F8F8F8;
+  border: 2px solid black;
+  border-radius: 6px;
+  padding: 4px;
+  row-gap: 4px;
+}
+.console textarea,
+.console .result {
+  background-color: white;
+  border: 1px solid #888888;
+  min-width: 250px;
+  min-height: 40px;
+  margin: 0;
+}
+.console button {
+  align-self: flex-start;
 }
 .css-editor {
   border-radius: 4px;
@@ -727,26 +764,6 @@ div:hover > .add-button {
   color: #880000 !important;
   background-color: #FFCCCC !important;
 }
-.console {
-  display: flex;
-  flex-direction: column;
-  background-color: #F8F8F8;
-  border: 2px solid black;
-  border-radius: 6px;
-  padding: 2px;
-  row-gap: 4px;
-}
-.console textarea,
-.console .result {
-  background-color: white;
-  border: 2px solid #888888;
-  min-width: 250px;
-  min-height: 40px;
-  margin: 0;
-}
-.console button {
-  align-self: flex-start;
-}
   `.trim();
 
   const JSConsole = $.Component(({ value, input, result }, update) => {
@@ -774,42 +791,53 @@ div:hover > .add-button {
     );
   }, { value: 'alert("Hello, world!")' });
   
-  const PageSaver = $.Component(() => {
-    return $.h('button', {
-      type: 'button',
-      onClick: () => {
-        // TODO: This does not quite work. Something must be wrong with
-        //       the bootstrap code generated, becuase replacing it with
-        //       something like `alert("Hello!")` works just as expected.
+  const Regenerator = $.Component(({ doDelay }, update) => {
+    return $.h('div', { className: 'regenerator' },
+      $.h('div', {}, 'Destroy everything and regnerate from the Boostrapper?'),
+      $.h('label', {}, 'Pause in the middle so you can inspect it?',
+          $.h('input', {
+              type: 'checkbox',
+              checked: !!doDelay,
+              onChange: () => update({ doDelay: !doDelay })
+          })
+      ),
+      $.h('button', {
+        type: 'button',
+        onClick: () => {
+          const bootstrapCode = $.generateBootstrapCode();
+          const bootScript = $.createElement($.h('script', {
+            type: 'application/javascript'
+          }));
+          bootScript.innerHTML = '\n' + bootstrapCode + '\n';
+          const title = document.head.querySelector('title').innerHTML;
+          document.head.innerHTML = '<title>' + title + '</title>';
+          document.body.innerHTML = '<h1>Everything is gone now!</h1>' +
+            '<p>Take the next 30 seconds to investigate before the bootstrap' +
+            ' code recreates everything from its serialized state.</p>';
+          const delay = (doDelay) ? 30000 : 0;
+          setTimeout(() => {
+            document.body.innerHTML = '';
+            document.head.appendChild(bootScript);
+          }, delay);
+        }
+      }, 'Do it!')
+    );
+  }, { doDelay: false });
 
-        // TODO (2): Should the recreate the active page at will, open a
-        //           new window, spit out code that can be copied into a
-        //           new JS or HTML file and run, and/or just update the
-        //           HTML document with no effect, such that saving the
-        //           page effectively saves the bootstrapped version of
-        //           the app (e.g. regenerated from within itself).
-
-        const bootstrapCode = $.generateBootstrapCode();
-        const bootScript = $.createElement($.h('script', {
-          type: 'application/javascript'
-        }));
-        bootScript.innerHTML = '\n + bootstrapCode + '\n';
-        const title = document.head.querySelector('title').innerHTML;
-        document.head.innerHTML = '<title>' + title + '</title>';
-        document.body.innerHTML = '<h1>Wait for it ...</h1>';
-        setTimeout(() => {
-          document.head.appendChild(bootScript);
-        }, 2000);
-      }
-    }, 'Save Page');
-  });
-
-  window.onload = () => {
+  $.afterWindowLoad(() => {
     GlobalCssEditor({ css: globalCss }).appendTo(document.body);
-    ValueEditor({ value: $ }).appendTo(document.body);
-    PageSaver().appendTo(document.body);
+    Regenerator().appendTo(document.body);
     JSConsole().appendTo(document.body);
-  };
+    ValueEditor({ value: $ }).appendTo(document.body);
+  });
+};
+
+$.afterWindowLoad = (callback) => {
+  if (document.readyState === 'complete') {
+    callback();
+  } else {
+    window.addEventListener("load", callback);
+  }
 };
 
 $.initialize();
@@ -860,5 +888,10 @@ $.deserialize = (entries) => {
 
 $.generateBootstrapCode = () => {
   const entries = $.stringify($.serialize($));
-  return '(function bootstrap(){' + entries + '[0].initialize();}())';
+  return '(function bootstrap(){' +
+    'const e = ' + entries + ';' +
+    'const $ = e[0];' +
+    '$.hydrateEntries(e);' +
+    '$.initialize();' +
+  '}())';
 };
