@@ -263,6 +263,26 @@ $.isListOrRecord = (value) => {
   return type === 'list' || type === 'record';
 };
 
+$.stringify = (value) => {
+  const type = $.getType(value);
+  if (type === 'list') {
+    return '[' +
+      value.map($.stringify).join(',') +
+    ']';
+  }
+  if (type === 'record') {
+    return '{' +
+      Object.entries(value).map(([k, v]) =>
+        JSON.stringify(k) + ':' + $.stringify(v)
+      ).join(',') +
+    '}';
+  }
+  if (type === 'function') {
+    return value.toString();
+  }
+  return JSON.stringify(value);
+};
+
 $.removeItem = (items, i) => {
   items.splice(i, 1); return items;
 };
@@ -765,71 +785,49 @@ $.initialize();
 
 // ------------- bootstrapper ------
 
-$.bootstrap = () => {
-  const registry = [];
-  const register = (value, ref = null) => {
-    if (!$.isListOrRecord(value)) { return [value]; }
-    let idx = registry.findIndex(r => r.value === value);
-    if (idx >= 0) {
-      if (ref) { registry[idx].refs.push(ref); }
-      return idx;
-    }
-    const reg = { value, refs: ref ? [ref] : [] };
-    idx = registry.length;
-    registry.push(reg);
-    const addEntry = (k, v) => register(v, [idx, k]);
-    reg.entries = (Array.isArray(value)
-      ? value.map((v, i) => addEntry(i, v))
-      : Object.fromEntries(
-          Object.entries(value).map(
-            ([k, v]) => [k, addEntry(k, v)]
-          )
-        )
-    );
-    return idx;
+$.serialize = (obj) => {
+  const values = [];
+  const entries = [];
+  const addEntry = (value) => {
+    const isArr = Array.isArray(value);
+    const isObj = value && (typeof value === 'object');
+    if (!(isArr || isObj)) { return value; }
+    let idx = values.findIndex(r => r === value);
+    if (idx >= 0) { return [idx]; }
+    idx = values.push(value) - 1;
+    const entry = (isArr) ? [] : {};
+    entries.push(entry);
+    Object.keys(value).forEach(k => entry[k] = addEntry(value[k]));
+    return [idx];
   };
-  const getLiteral = (entry, rootIdx, tab = '') => {
-    if (typeof entry !== number) {
-      return tab + JSON.stringify(entry[0]);
-    }
-    if (entry < rootIdx) { return '_' + entry; }
-    if (entry >= rootIdx) { return ''; }
-    const obj = registry[entry].value;
-    const tab2 = tab + '  ';
-    if (Array.isArray(obj)) {
-      const lines = obj.map(v => getLiteral(v, rootIdx, tab2));
-      return tab + '[\n' + lines.join(',\n') + '\n' + tab + ']';
-    }
-    const lines = (Object.entries(obj)
-      .map(([k, v]) => [k, getLiteral(v, rootIdx, tab2)])
-      .filter(kv => kv[1])
-      .map(([k, v]) => tab2 + JSON.stringify(k) + ': ' + v.trimStart())
-    );
-    return tab + '{\n' + entries.join(',\n') + '\n' + tab + '}';
-  };
-  const getRefCode = ([idx, key]) => {
-    const reg = registry[idx];
-    const varName = (reg.refs.length !== 1
-      ? '_' + idx
-      : getRefCode(reg.refs[0])
-    );
-    const fieldAccess = (key || key === 0
-      ? '[' + JSON.stringify(key) + ']'
-      : ''
-    );
-    return varName + fieldAccess;
-  };
-  const getCode = (entry, idx) => {
-    const decl = 'const _' + idx + ' = ' + getLiteral(entry, idx) + ';';
-    if (entry.refs.length < 2) { return decl; }
-    const assigns = (entry.refs
-      .filter(r => r[0] <= idx)
-      .map(r => getRefCode(r) + ' = ' + getRefCode([idx]))
-    );
-    return [decl, ...assigns].join('\n');
-  };
-  register($);
-  const code = registry.map(getCode).concat('initialize()').join('\n');
-  // TODO: something with the code. For now, just return it
-  return code;
+  addEntry(obj);
+  return entries;
+};
+
+$.hydrateEntries = (entries) => {
+  entries.forEach(entry => {
+    Object.keys(entry).forEach(k => {
+      const v = entry[k];
+      if (Array.isArray(v)) {
+        entry[k] = entries[v[0]];
+      }
+    })
+  });
+  return entries;
+}
+
+$.deepCopy = (obj) => {
+  let result = undefined;
+  try { eval('(result = (' + $.stringify(obj) + '));'); }
+  catch (cause) { throw new Error('Unable to deep-copy', { cause }); }
+  return result;
+}
+
+$.deserialize = (entries) => {
+  return $.hydrateEntries($.deepCopy(entries));
+};
+
+$.generateBootstrapCode = () => {
+  const entries = $.stringify($.serialize($));
+  return '(function bootstrap(){' + entries + '[0].initialize();}())';
 };
