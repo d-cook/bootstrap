@@ -16,17 +16,17 @@ This _specific_ attempt starts with JavaScript/HTML/CSS as a "given" foundation 
      - :white_large_square:    Collapsible
      - :white_large_square:    Insert / extract existing entities
    - :white_check_mark:      Dynamic fields (map any value to the appropriate view)
-   - :ballot_box_with_check: Functions
-     - :white_large_square:    _And_ preserve references across functions (via a master context object)
-3. :white_large_square:    Bootstrap the UI/App as it exists up to this point
-   - :white_large_square:    Convert the entire app into a vdom view / editor + the data to be viewed
-     - :white_large_square:    Recode everything into a single top-level structure ("master context")
-     - :white_large_square:    Create view for that top-level structure (shows all entities created)
+   - :white_check_mark:      Functions
+     - :white_check_mark:      _And_ preserve references across functions (via a master context object)
+3. :white_check_mark:      Bootstrap the UI/App as it exists up to this point
+   - :white_check_mark:      Convert the entire app into a vdom view / editor + the data to be viewed
+     - :white_check_mark:      Recode everything into a single top-level structure ("master context")
+     - :white_check_mark:      Create view for that top-level structure (shows all entities created)
      - :white_check_mark:      Create view for the global CSS (also stored in top-level structure)
-   - :white_large_square:    Create the bootstrapper:
-     - :white_large_square:    A function that generates JS code which recreates the APP in its current state
-     - :white_large_square:    That code contains: all entites (hard-codeded), code to invoke the APP view
-     - :white_large_square:    Perhaps also auto-copy this JS into a <script> tag, so that simply saving the page creates a bootstrapping HTML doc
+   - :white_check_mark:      Create the bootstrapper:
+     - :white_check_mark:      A function that generates JS code which recreates the APP in its current state
+     - :white_check_mark:      That code contains: all entites (hard-codeded), code to invoke the APP view
+     - :white_check_mark:      Perhaps also auto-copy this JS into a <script> tag, so that simply saving the page creates a bootstrapping HTML doc
 
 _At this point, any further development can be done via the running App itself_
 
