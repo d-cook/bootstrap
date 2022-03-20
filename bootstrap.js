@@ -773,10 +773,41 @@ div:hover > .add-button {
       $.h('pre', { className: 'result' }, output)
     );
   }, { value: 'alert("Hello, world!")' });
+  
+  const PageSaver = $.Component(() => {
+    return $.h('button', {
+      type: 'button',
+      onClick: () => {
+        // TODO: This does not quite work. Something must be wrong with
+        //       the bootstrap code generated, becuase replacing it with
+        //       something like `alert("Hello!")` works just as expected.
+
+        // TODO (2): Should the recreate the active page at will, open a
+        //           new window, spit out code that can be copied into a
+        //           new JS or HTML file and run, and/or just update the
+        //           HTML document with no effect, such that saving the
+        //           page effectively saves the bootstrapped version of
+        //           the app (e.g. regenerated from within itself).
+
+        const bootstrapCode = $.generateBootstrapCode();
+        const bootScript = $.createElement($.h('script', {
+          type: 'application/javascript'
+        }));
+        bootScript.innerHTML = '\n + bootstrapCode + '\n';
+        const title = document.head.querySelector('title').innerHTML;
+        document.head.innerHTML = '<title>' + title + '</title>';
+        document.body.innerHTML = '<h1>Wait for it ...</h1>';
+        setTimeout(() => {
+          document.head.appendChild(bootScript);
+        }, 2000);
+      }
+    }, 'Save Page');
+  });
 
   window.onload = () => {
     GlobalCssEditor({ css: globalCss }).appendTo(document.body);
     ValueEditor({ value: $ }).appendTo(document.body);
+    PageSaver().appendTo(document.body);
     JSConsole().appendTo(document.body);
   };
 };
