@@ -540,17 +540,19 @@ button {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  border: 2px solid #C00;
-  border-radius: 4px;
-  padding: 4px;
-  background: #FEE;
+  background-color: #FFE;
+  font-weight: bold;
+  color: #880;
+  border: 2px solid #880;
+  border-radius: 12px;
+  padding: 6px;
+  row-gap: 4px;
 }
 .regenerator button {
-  font-weight: bold;
-  background-color: #FAA;
-  border: 2px solid #C66;
+  background-color: #FFC;
+  border: 1px solid #660;
   border-radius: 4px;
-  color: #800;
+  color: #660;
 }
 .console {
   display: flex;
@@ -791,36 +793,54 @@ div:hover > .add-button {
     );
   }, { value: 'alert("Hello, world!")' });
   
-  const Regenerator = $.Component(({ doDelay }, update) => {
+  const Regenerator = $.Component(() => {
+    const regeneratePage = () => {
+      const bootstrapCode = $.generateBootstrapCode();
+      const bootScript = $.createElement($.h('script', {
+        type: 'application/javascript'
+      }));
+      bootScript.innerHTML = '\n' + bootstrapCode + '\n';
+      const title = document.head.querySelector('title').innerHTML;
+      document.head.innerHTML = '<title>' + title + '</title>';
+      document.body.innerHTML = '';
+      setTimeout(() => document.head.appendChild(bootScript));
+    };
+    const downloadHTML = () => {
+      const htmlContent = ['<html>' + document.head.outerHTML + '<body></body></html>'];
+      const blob = new Blob(htmlContent, { type: 'text/html' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'bootstrap.html';
+      link.click();
+    };
+    const downloadJS = () => {
+      const jsContent = [document.head.querySelector('script').innerHTML];
+      const blob = new Blob(jsContent, { type: 'application/javascript' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'bootstrap.js';
+      link.click();
+    };
     return $.h('div', { className: 'regenerator' },
-      $.h('div', {}, 'Destroy everything and regnerate from the Boostrapper?'),
-      $.h('label', {}, 'Pause in the middle so you can inspect it?',
-          $.h('input', {
-              type: 'checkbox',
-              checked: !!doDelay,
-              onChange: () => update({ doDelay: !doDelay })
-          })
-      ),
+      $.h('div', {}, 'Regenerate the entire app in its current state?'),
+      $.h('button', {
+        type: 'button',
+        onClick: regeneratePage
+      }, 'Regenerate the page from scratch!'),
       $.h('button', {
         type: 'button',
         onClick: () => {
-          const bootstrapCode = $.generateBootstrapCode();
-          const bootScript = $.createElement($.h('script', {
-            type: 'application/javascript'
-          }));
-          bootScript.innerHTML = '\n' + bootstrapCode + '\n';
-          const title = document.head.querySelector('title').innerHTML;
-          document.head.innerHTML = '<title>' + title + '</title>';
-          document.body.innerHTML = '<h1>Everything is gone now!</h1>' +
-            '<p>Take the next 30 seconds to investigate before the bootstrap' +
-            ' code recreates everything from its serialized state.</p>';
-          const delay = (doDelay) ? 30000 : 0;
-          setTimeout(() => {
-            document.body.innerHTML = '';
-            document.head.appendChild(bootScript);
-          }, delay);
+          regeneratePage();
+          setTimeout(downloadHTML, 200);
         }
-      }, 'Do it!')
+      }, 'Download as self-bootstrapping HTML document'),
+      $.h('button', {
+        type: 'button',
+        onClick: () => {
+          regeneratePage();
+          setTimeout(downloadJS, 200);
+        }
+      }, 'Download as self-bootstrapping JavaScript document')
     );
   }, { doDelay: false });
 
