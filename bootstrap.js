@@ -1,15 +1,7 @@
-const $ = {}; // Root context
-$.$ = $;
-$.testInput = ["Try entering JSON here!"]
 
-//------------------------------------------------
-//VDOM
-
-$.flatten = (value) => {
+(function bootstrap(){const e = [{"$":[0],"testInput":[1],"flatten":(value) => {
   return Array.isArray(value) ? [].concat(...value.map($.flatten)) : value;
-};
-
-$.h = (type, props, ...children) => {
+},"h":(type, props, ...children) => {
   props = props || {};
   children = $.flatten(children);
   if (typeof type === 'function') {
@@ -28,9 +20,7 @@ $.h = (type, props, ...children) => {
     allProps.style = type.props.style + ';' + props.style;
   }
   return { ...type, props: allProps, children: type.children.concat(children) };
-};
-
-$.setBooleanProp = (element, name, value) => {
+},"setBooleanProp":(element, name, value) => {
   if (value) {
     element.setAttribute(name, name);
     element[name] = true;
@@ -38,21 +28,13 @@ $.setBooleanProp = (element, name, value) => {
     element.removeAttribute(name);
     element[name] = false;
   }
-};
-
-$.isEventProp = (name) => {
+},"isEventProp":(name) => {
   return /^on/.test(name);
-};
-
-$.extractEventName = (name) => {
+},"extractEventName":(name) => {
   return name.slice(2).toLowerCase();
-};
-
-$.isCustomProp = (name) => {
+},"isCustomProp":(name) => {
   return ['key', 'component', 'initState'].includes(name);
-};
-
-$.setProp = (element, name, value) => {
+},"setProp":(element, name, value) => {
   if ($.isCustomProp(name)) {
     return;
   } else if (name === 'className') {
@@ -67,9 +49,7 @@ $.setProp = (element, name, value) => {
   } else {
     element.setAttribute(name, value);
   }
-};
-
-$.removeProp = (element, name, value) => {
+},"removeProp":(element, name, value) => {
   if ($.isCustomProp(name)) {
     return;
   } else if (name === 'className') {
@@ -83,19 +63,13 @@ $.removeProp = (element, name, value) => {
   } else {
     element.removeAttribute(name);
   }
-};
-
-$.setProps = (element, props) => {
+},"setProps":(element, props) => {
   Object.keys(props).forEach(name => {
     $.setProp(element, name, props[name]);
   });
-};
-
-$.isNothing = (val) => {
+},"isNothing":(val) => {
   return val === null || (typeof val === 'undefined');
-};
-
-$.updateProp = (element, name, newVal, oldVal) => {
+},"updateProp":(element, name, newVal, oldVal) => {
   if ($.isNothing(newVal)) {
     $.removeProp(element, name, oldVal);
   } else if ($.isNothing(oldVal) || newVal !== oldVal) {
@@ -103,16 +77,12 @@ $.updateProp = (element, name, newVal, oldVal) => {
   } else if (name === 'value' && newVal !== element.value) {
     $.setProp(element, name, newVal);
   }
-};
-
-$.updateProps = (element, newProps, oldProps = {}) => {
+},"updateProps":(element, newProps, oldProps = {}) => {
   const props = Object.assign({}, newProps, oldProps);
   Object.keys(props).forEach(name => {
     $.updateProp(element, name, newProps[name], oldProps[name]);
   });
-};
-
-$.createElement = (node) => {
+},"createElement":(node) => {
   if (typeof node === 'string') {
     return document.createTextNode(node);
   } else if (node.type === 'vdom-component') {
@@ -125,16 +95,12 @@ $.createElement = (node) => {
     .map($.createElement)
     .forEach(el => element.appendChild(el));
   return element;
-};
-
-$.hasChanged = (node1, node2) => {
+},"hasChanged":(node1, node2) => {
   return typeof node1 !== typeof node2 ||
          typeof node1 === 'string' && node1 !== node2 ||
          node1.type !== node2.type ||
          node1.constructor !== node2.constructor;
-};
-
-$.updateElement = (parent, newNode, oldNode, index = 0) => {
+},"updateElement":(parent, newNode, oldNode, index = 0) => {
   if ($.isNothing(oldNode)) {
     if ($.isNothing(newNode)) { return; }
     if (index < parent.childNodes.length) {
@@ -171,13 +137,9 @@ $.updateElement = (parent, newNode, oldNode, index = 0) => {
       oldNode.children
     );
   }
-};
-
-$.getKey = (node, i) => {
+},"getKey":(node, i) => {
   return (node && node.props && node.props.key) || '#' + i;
-};
-
-$.matchNodes = (newNodes, oldNodes) => {
+},"matchNodes":(newNodes, oldNodes) => {
   let ni = 0;
   let pairs = [];
   const newKeys = newNodes.map($.getKey);
@@ -195,9 +157,7 @@ $.matchNodes = (newNodes, oldNodes) => {
     pairs = pairs.concat(newNodes.slice(ni).map(v => [v, null]));
   }
   return pairs;
-};
-
-$.updateElements = (parent, newNodes, oldNodes) => {
+},"updateElements":(parent, newNodes, oldNodes) => {
   const nodePairs = $.matchNodes(newNodes, oldNodes);
   let removedCount = 0;
   nodePairs.forEach((pair, i) => {
@@ -205,9 +165,7 @@ $.updateElements = (parent, newNodes, oldNodes) => {
     $.updateElement(parent, n, o, i - removedCount);
     if ($.isNothing(n)) { removedCount++; }
   });
-};
-
-$.makeComponent = (render, initState, target) => {
+},"makeComponent":(render, initState, target) => {
   let prevState = initState || {};
   let prevContent = null;
   const update = (state) => {
@@ -236,34 +194,23 @@ $.makeComponent = (render, initState, target) => {
     document.createElement('vdom-component');
   update();
   return { update, appendTo, getElement: () => target };
-};
-
-$.Component = (render, defaultState) => {
+},"Component":(render, defaultState) => {
   return (initState, target) => $.makeComponent(
     render,
     initState || defaultState,
     target
   );
-};
-
-//---------------------------------------------------------
-//UI APP
-
-$.getType = (value) => {
+},"getType":(value) => {
   const type = typeof value;
   if (['string', 'number', 'function'].includes(type)) { return type; }
   if (type === 'boolean') { return 'bool'; }
   if (!value) { return 'null'; }
   if (Array.isArray(value)) { return 'list'; }
   return 'record';
-};
-
-$.isListOrRecord = (value) => {
+},"isListOrRecord":(value) => {
   const type = $.getType(value);
   return type === 'list' || type === 'record';
-};
-
-$.stringify = (value) => {
+},"stringify":(value) => {
   const type = $.getType(value);
   if (type === 'list') {
     return '[' +
@@ -281,31 +228,19 @@ $.stringify = (value) => {
     return value.toString();
   }
   return JSON.stringify(value);
-};
-
-$.removeItem = (items, i) => {
+},"removeItem":(items, i) => {
   items.splice(i, 1); return items;
-};
-
-$.insertItem = (items, i, item) => {
+},"insertItem":(items, i, item) => {
   items.splice(i, 0, item); return items;
-};
-
-$.xButton = (onClick) => {
+},"xButton":(onClick) => {
   return $.h('button', { className: 'x-button', onClick }, 'X')
-};
-
-$.cycleIndicator = (depth) => {
+},"cycleIndicator":(depth) => {
   return $.h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
-};
-
-$.valueEditorOrCycle = (value, input, path, update) => {
+},"valueEditorOrCycle":(value, input, path, update) => {
   const parentIdx = path.indexOf(value);
   return (parentIdx >= 0) ? $.cycleIndicator(path.length - parentIdx) :
     $.anyValueEditor(value, input, path.concat([value]), update);
-};
-
-$.textEditor = (value, input, update, isValid) => {
+},"textEditor":(value, input, update, isValid) => {
   if (typeof input !== 'string') { input = value; }
   if (typeof isValid !== 'function') { isValid = () => true; }
   const isChanged = () => (input !== value);
@@ -344,9 +279,7 @@ $.textEditor = (value, input, update, isValid) => {
       }
     }
   });
-};
-
-$.jsonEditor = (value, input, update) => {
+},"jsonEditor":(value, input, update) => {
   const json = JSON.stringify(value, null, 2);
   const updateJson = ({ value, input }) => {
     try {
@@ -361,9 +294,7 @@ $.jsonEditor = (value, input, update) => {
     catch(ex) { return false; }
   };
   return $.textEditor(json, input, updateJson, isValid)
-};
-
-$.listEditor = (value, input, path, update) => {
+},"listEditor":(value, input, path, update) => {
   input = input || { i: -1 };
   return $.h('div', { className: 'list-editor' },
     value.map((v, i) =>
@@ -395,9 +326,7 @@ $.listEditor = (value, input, path, update) => {
       }
     }, '+')
   );
-};
-
-$.recordEditor = (value, input, path, update) => {
+},"recordEditor":(value, input, path, update) => {
   input = input || { k: null, v: null };
   return $.h('div', { className: 'record-editor' },
     Object.entries(value).map(([k, v], i) =>
@@ -454,9 +383,7 @@ $.recordEditor = (value, input, path, update) => {
       }
     }, '+')
   );
-};
-
-$.funcEditor = (value, input, update) => {
+},"funcEditor":(value, input, update) => {
   input = input || value.toString();
   const parseFunc = (src) => {
     const cleanSrc = src.replace(/\/\/[^\n]*\n|\/\*(.|\n)*\*\//g, ' ').trim();
@@ -478,9 +405,7 @@ $.funcEditor = (value, input, update) => {
       update({ value, input });
     }, parseFunc)
   );
-};
-
-$.anyValueEditor = (value, input, path, update) => {
+},"anyValueEditor":(value, input, path, update) => {
   const type = $.getType(value);
   return (
     (type === 'list'    ) ? $.listEditor  (value, input, path, update) :
@@ -488,10 +413,7 @@ $.anyValueEditor = (value, input, path, update) => {
     (type === 'function') ? $.funcEditor  (value, input, update) :
                             $.jsonEditor  (value, input, update)
   );
-};
-
-
-$.initialize = () => {
+},"initialize":() => {
   const ValueEditor = $.Component(({ value, input }, update) => {
     return $.anyValueEditor(value, input, [value], update);
   }, { value: null });
@@ -831,25 +753,19 @@ div:hover > .add-button {
     JSConsole().appendTo(document.body);
     ValueEditor({ value: $ }).appendTo(document.body);
   });
-};
-
-$.afterWindowLoad = (callback) => {
+},"afterWindowLoad":(callback) => {
   if (document.readyState === 'complete') {
     callback();
   } else {
     window.addEventListener("load", callback);
   }
-};
-
-$.download = (content, type, fileName) => {
+},"download":(content, type, fileName) => {
   const blob = new Blob([content], { type });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = fileName;
   link.click();
-};
-
-$.regeneratePage = () => {
+},"regeneratePage":() => {
   const bootstrapCode = $.generateBootstrapCode();
   const bootScript = $.createElement($.h('script', {
     type: 'application/javascript'
@@ -861,13 +777,7 @@ $.regeneratePage = () => {
   document.body.innerHTML = '';
   document.title = title.endsWith(regen) ? title : title + regen;
   setTimeout(() => document.head.appendChild(bootScript));
-};
-
-$.initialize();
-
-// ------------- bootstrapper ------
-
-$.serialize = (obj) => {
+},"serialize":(obj) => {
   const values = [];
   const entries = [];
   const addEntry = (value) => {
@@ -884,9 +794,7 @@ $.serialize = (obj) => {
   };
   addEntry(obj);
   return entries;
-};
-
-$.hydrateEntries = (entries) => {
+},"hydrateEntries":(entries) => {
   entries.forEach(entry => {
     Object.keys(entry).forEach(k => {
       const v = entry[k];
@@ -896,20 +804,14 @@ $.hydrateEntries = (entries) => {
     })
   });
   return entries;
-}
-
-$.deepCopy = (obj) => {
+},"deepCopy":(obj) => {
   let result = undefined;
   try { eval('(result = (' + $.stringify(obj) + '));'); }
   catch (cause) { throw new Error('Unable to deep-copy', { cause }); }
   return result;
-}
-
-$.deserialize = (entries) => {
+},"deserialize":(entries) => {
   return $.hydrateEntries($.deepCopy(entries));
-};
-
-$.generateBootstrapCode = () => {
+},"generateBootstrapCode":() => {
   const entries = $.stringify($.serialize($));
   return '(function bootstrap(){' +
     'const e = ' + entries + ';' +
@@ -917,4 +819,4 @@ $.generateBootstrapCode = () => {
     '$.hydrateEntries(e);' +
     '$.initialize();' +
   '}())';
-};
+}},["Try entering JSON here!"]];const $ = e[0];$.hydrateEntries(e);$.initialize();}())
