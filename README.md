@@ -38,7 +38,7 @@ This is my current plan for creating an initial (MVP) implementation of a self-h
    - :white_large_square:    Make it easier to edit the running system without crashing it
      - :white_large_square:    A (temporary?) way to edit and test / toggle _copies_ of the system (or its code) within itself 
 
-_At this point, further development is done within the running system itself, and "source code" files become auto-generated_
+_At this point, further development is done within the running system itself. "Source files" become auto-generated._
 
 4. :white_large_square:    Create the self-running runtime
    - :white_large_square:    A data-representation of code and [an interpreter](https://github.com/d-cook/Interact) that runs such code
@@ -76,14 +76,18 @@ Once the runtime is fully self-hosted (above), it can be utilized & adapted to e
 
 Here are just some of those possibilities:
 
-#### Bootstrap the power of software into software development
+#### Bootstrap the power of software back into software development
 
-It is ironic that software provides powerfully generative and dynamic tools & interfaces to do things that would be entirely impractical or impossible otherwise; while that same power is massively unutilized in the _development_ of that very same software. The software developer does not work with dynamic or generative models of the system they are created, but with rigourous textual _descriptions_ *of* dynamic and generative models.
+Software provides powerfully generative and dynamic tools & interfaces to do things that would be entirely impractical or impossible otherwise.
 
-One of the goals of this project is to address that problem by bootstrapping the generative & dynamic nature of software back into itself.
+Ironically, that same power is massively unutilized in the _development_ of said software. Instead of using dynamic or generative representations of the software system being created, the software developer works with _static_, rigourous, word-for-word _descriptions_ **of** dynamic and generative models.
 
-As an analogy, image a programming language or IDE in which the language, editor, modeling, etc of application code, could be specified within the application code _itself_. And recursively: specify a better (e.g. visually immediate) view / model for such specifications than is possible with just text.
-   
+One of the goals of this project is to address that problem by bootstrapping the generative & dynamic nature of software back into itself, by replacing "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models.
+
+This is in contrast to (though perhaps can work alongside) the concept of "programming language", wherein the representation of software and the runtime implications of that representation, are subject to the set-in-stone limitations of a system outside your control (e.g. a compiler for that "language").
+
+Creating a "new language" only moves the problem up a level, as rigor of coding up an entire compiler or runtime (aside from being a lot of extra work!) must be done under the limitations of some other already existing language. And then you are _still_ stuck with a set-in-stone limitations, albeit ones you can change through rigorous modification to swap limitations-A for limitations-B.
+
 #### Improve the runtime further
 
 It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself (see previous section), without utilizing any of that power in the development of said tool.
