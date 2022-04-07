@@ -78,15 +78,11 @@ Here are just some of those possibilities:
 
 #### Bootstrap the power of software back into software development
 
-Software provides powerfully generative and dynamic tools & interfaces to do things that would be entirely impractical or impossible otherwise.
+Software provides powerfully generative and dynamic tools & interfaces to do things that would be entirely impractical or impossible otherwise. Ironically, that same power is massively unutilized in the _development_ of said software. Instead of dynamic or generative representations, the software developer works with static, rigourously _written out descriptions_ **of** those dynamic and generative models.
 
-Ironically, that same power is massively unutilized in the _development_ of said software. Instead of using dynamic or generative representations of the software system being created, the software developer works with _static_, rigourous, word-for-word _descriptions_ **of** dynamic and generative models.
+This is a limitation of "programming languages", wherein the representation of software and the runtime implications of that representation, are governed by set-in-stone limitations of a system outside of your control (e.g. a compiler or runtime). Creating a new language only shifts the problem: coding up an entire compiler or runtime is a lot of extra work that must be done in (and under the limitations of) some other already existing language. And then you are _still_ stuck with a set-in-stone limitations, albeit ones you can change through rigorous more modification.
 
-One of the goals of this project is to address that problem by bootstrapping the generative & dynamic nature of software back into itself, by replacing "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models.
-
-This is in contrast to (though perhaps can work alongside) the concept of "programming language", wherein the representation of software and the runtime implications of that representation, are subject to the set-in-stone limitations of a system outside your control (e.g. a compiler for that "language").
-
-Creating a "new language" only moves the problem up a level, as rigor of coding up an entire compiler or runtime (aside from being a lot of extra work!) must be done under the limitations of some other already existing language. And then you are _still_ stuck with a set-in-stone limitations, albeit ones you can change through rigorous modification to swap limitations-A for limitations-B.
+An alternative is to replace (or supplement) "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models. A fully self-running live-representation allows such things to be defined in terms of themselves or each other, without ultimately falling back on rigorously written out textual descriptions that are just shifted up level.
 
 #### Improve the runtime further
 
