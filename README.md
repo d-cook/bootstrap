@@ -76,14 +76,6 @@ Once the runtime is fully self-hosted (above), it can be utilized & adapted to e
 
 Here are just some of those possibilities:
 
-#### Bootstrap the power of software back into software development
-
-Software provides powerfully generative and dynamic tools & interfaces to do things that would be entirely impractical or impossible otherwise. Ironically, that same power is massively unutilized in the _development_ of said software. Instead of dynamic or generative representations, the software developer works with static, rigourously _written out descriptions_ **of** those dynamic and generative models.
-
-This is a limitation of "programming languages", wherein the representation of software and the runtime implications of that representation, are governed by set-in-stone limitations of a system outside of your control (e.g. a compiler or runtime). Creating a new language only shifts the problem: coding up an entire compiler or runtime is a lot of extra work that must be done in (and under the limitations of) some other already existing language. And then you are _still_ stuck with a set-in-stone limitations, albeit ones you can change through rigorous more modification.
-
-An alternative is to replace (or supplement) "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models. A fully self-running live-representation allows such things to be defined in terms of themselves or each other, without ultimately falling back on rigorously written out textual descriptions that are just shifted up level.
-
 #### Use the runtime to modify itself further
 
 It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself (see previous section), without utilizing any of that power in the development of said tool.
@@ -97,6 +89,14 @@ Multiple / many different approaches and tools for such a runtime can be explore
 - It can be swapped out piece-by-piece OR wholesale (i.e. "that's me over there") while running
 - It can be copied or regenerated at a whim - along with anything within it at the time
 - It can transfer itself as-is to other native runtimes or over the wire (see TBD)
+
+#### Bootstrap the power of software back into software development
+
+Software provides powerfully generative and dynamic tools & interfaces to do things that would be entirely impractical or impossible otherwise. Ironically, that same power is massively unutilized in the _development_ of said software. Instead of dynamic or generative representations, the software developer works with static, rigourously _written out descriptions_ **of** those dynamic and generative models.
+
+This is a limitation of "programming languages", wherein the representation of software and the runtime implications of that representation, are governed by set-in-stone limitations of a system outside of your control (e.g. a compiler or runtime). Creating a new language only shifts the problem: coding up an entire compiler or runtime is a lot of extra work that must be done in (and under the limitations of) some other already existing language. And then you are _still_ stuck with a set-in-stone limitations, albeit ones you can change through rigorous more modification.
+
+An alternative is to replace (or supplement) "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models. A fully self-running live-representation allows such things to be defined in terms of themselves or each other, without ultimately falling back on rigorously written out textual descriptions that are just shifted up level.
 
 #### TODO: Make sections (as above) for the following:
    
