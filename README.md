@@ -70,7 +70,7 @@ _At this point, further development is done within the running system itself. "S
 
 _At this point, the runtime provides its own means (e.g. tools & language) for viewing, editing, and defining itself, or anything within it_
 
-8. With the MVP now complete, use it as it's own vehicle for further development and exploration
+8. With the MVP now complete, use it as it's [own vehicle](#use-the-runtime-to-modify-itself-further) for [further development and exploration](#further-development--exploration)
 
 ## Further development & exploration
 
@@ -83,7 +83,7 @@ The possibilities are potentially limitless, but here are some that I have in mi
 It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself, without utilizing any of that power in the development of said tool. Thus, the MVP is intentionally minimal and crude, so that that power can be utilized as early as possible to make further development & exploration more practical & achievable.
 
 With the MVP complete, any changes in representation, tooling, generativity, etc. can be immediately utilized _as they come_, while also serving as an immediately observable a proof of concept (POC) for how they improve further development of themselves and/or other things.
-   
+
 There are many directions this can take, but options can be explored in parallel because:
 - The runtime be used to create & test separate implementations of itself or whatever else
 - Alternate runtimes (or other things) can be sandboxed (i.e. run & tested in isolation)
@@ -100,24 +100,24 @@ This is a limitation of "programming languages", wherein the representation of s
 An alternative is to replace (or supplement) "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models. A fully self-running live-representation allows such things to be defined in terms of themselves or each other, without ultimately falling back on rigorously written out textual descriptions that are just shifted up level.
 
 #### TODO: Make sections (as above) for the following:
-   
-   - Make better tools / alternatives to text-based "coding":
-     - Operate on values by manipulating them as objects, and your actions as recorded as code
-     - Boxes and arrows?
-     - Code that generates other code (e.g. from some business model)
-     - Explore other "language" models, e.g. static types
-       - Enforced by UI instead of compiler (i.e. can only build valid structures)
-   - Drag & drop editor for HTML / VDOM / CSS
-   - Drag & drop shapes to create SVG images / graphics
-   - Evolving this system / App:
-     - Since everything about it is modifiable within itself, you can mold it into a totally different paradigm or system
-     - Bootstrap the system to a different language or platform (assembly, JVM, CLR, etc.)
-       - The only parts that are "native code" are:
-         - Basic operations (+, -, if, etc)
-         - Some implementation of lists & records (you get this for free in JavaScript)
-         - Basic graphics commands (e.g. VDOM, SVG, or some other "line here, box there" model)
-         - The code that the compiler outputs as the native equivalent of invoking a function
-       - Recode (copy) _just_ the native code for those parts for some other platform
-       - Run the bootstrap-generator using _that_ spec, and run the resulting output on the new platform
-       - BOOM! The same app is now running (exactly as you left it) on that other platform.
-     - This running system can serialize itself and transfer itself over the wire (e.g. HTTP)
+
+- Make better tools / alternatives to text-based "coding":
+  - Operate on values by manipulating them as objects, and your actions as recorded as code
+  - Boxes and arrows?
+  - Code that generates other code (e.g. from some business model)
+  - Explore other "language" models, e.g. static types
+    - Enforced by UI instead of compiler (i.e. can only build valid structures)
+- Drag & drop editor for HTML / VDOM / CSS
+- Drag & drop shapes to create SVG images / graphics
+- Evolving this system / App:
+  - Since everything about it is modifiable within itself, you can mold it into a totally different paradigm or system
+  - Bootstrap the system to a different language or platform (assembly, JVM, CLR, etc.)
+    - The only parts that are "native code" are:
+      - Basic operations (+, -, if, etc)
+      - Some implementation of lists & records (you get this for free in JavaScript)
+      - Basic graphics commands (e.g. VDOM, SVG, or some other "line here, box there" model)
+      - The code that the compiler outputs as the native equivalent of invoking a function
+    - Recode (copy) _just_ the native code for those parts for some other platform
+    - Run the bootstrap-generator using _that_ spec, and run the resulting output on the new platform
+    - BOOM! The same app is now running (exactly as you left it) on that other platform.
+  - This running system can serialize itself and transfer itself over the wire (e.g. HTTP)
