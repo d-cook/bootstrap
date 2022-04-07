@@ -84,11 +84,19 @@ This is a limitation of "programming languages", wherein the representation of s
 
 An alternative is to replace (or supplement) "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models. A fully self-running live-representation allows such things to be defined in terms of themselves or each other, without ultimately falling back on rigorously written out textual descriptions that are just shifted up level.
 
-#### Improve the runtime further
+#### Use the runtime to modify itself further
 
 It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself (see previous section), without utilizing any of that power in the development of said tool.
 
 Thus, the MVP is intentionally minimal and crude, so that that power can be utilized as early as possible to make the exploration of this space actually practical & achievable, both by immediately benefiting from any gain in representation / tooling / generative power / etc, and by demonstrating that practicality through direct experience and as a POC of the very thing being explored.
+
+Multiple / many different approaches and tools for such a runtime can be explored all at once, because:
+- It has programmatic access to everything in it, so changes be made programmatically / generatively
+- It can contain & run separate modifiable copies of itself
+- It can sandbox & test modifications, alternate runtime implementations, etc.
+- It can be swapped out piece-by-piece OR wholesale (i.e. "that's me over there") while running
+- It can be copied or regenerated at a whim - along with anything within it at the time
+- It can transfer itself as-is to other native runtimes or over the wire (see TBD)
 
 #### TODO: Make sections (as above) for the following:
    
