@@ -1,7 +1,7 @@
 # Bootstrap
 An attempt to bootstrap self-moldable software that is it's own self-contained language, runtime, editor, or whatever else you make it to be.
 
-This is my "Frankenstein's monster" starting point (as [Alan Kay puts it](https://youtu.be/YyIQKBzIuBY?t=47m) 47:00 - 49:05) for reinventing various approaches to and applications of software. The plan is to (1) bootstrap the minimum mechanism (or minimal effort) needed to define, run, edit, and visualize all parts of itself, then (2) use the system to improve and/or bootstrap itself into better things (e.g. rapid development of _other_ "Franks"). There are limitless directions this can take, but one goal is to bootstrap the power of programming back into itself, and another is to empower non-programmers to make software work for _them_.
+This is my "Frankenstein's monster" starting point (as [Alan Kay puts it](https://youtu.be/YyIQKBzIuBY?t=47m) 47:00 - 49:05) for reinventing various approaches to and applications of software. The plan is to (1) [bootstrap the minimum mechanism](#initial-implementation) (or minimal effort) needed to define, run, edit, and visualize all parts of itself, then (2) use that system to [improve and/or bootstrap itself into better things](#further-development--exploration) (e.g. rapid development of _other_ "Franks").
 
 This _specific_ attempt starts with JavaScript/HTML/CSS as a "given" foundation -- but all in a single flat JavaScript file, since it all must be self-contained. No NPM or pacakges; just a very [simple VDOM](https://github.com/d-cook/vdom) implementation pasted directly into it. This is both a major shortcut for bootstrapping an initial system into existence, as well as having _immediate_ practicality for generating real-world software.
 
@@ -109,15 +109,6 @@ An alternative is to replace (or supplement) "source code" with whatever "living
     - Enforced by UI instead of compiler (i.e. can only build valid structures)
 - Drag & drop editor for HTML / VDOM / CSS
 - Drag & drop shapes to create SVG images / graphics
-- Evolving this system / App:
-  - Since everything about it is modifiable within itself, you can mold it into a totally different paradigm or system
-  - Bootstrap the system to a different language or platform (assembly, JVM, CLR, etc.)
-    - The only parts that are "native code" are:
-      - Basic operations (+, -, if, etc)
-      - Some implementation of lists & records (you get this for free in JavaScript)
-      - Basic graphics commands (e.g. VDOM, SVG, or some other "line here, box there" model)
-      - The code that the compiler outputs as the native equivalent of invoking a function
-    - Recode (copy) _just_ the native code for those parts for some other platform
-    - Run the bootstrap-generator using _that_ spec, and run the resulting output on the new platform
-    - BOOM! The same app is now running (exactly as you left it) on that other platform.
-  - This running system can serialize itself and transfer itself over the wire (e.g. HTTP)
+- Bootstrap the system to a different language or platform (assembly, JVM, CLR, etc.)
+<br>The only "native code" needed for each is basic operators (+, -, if, etc), some implementation of lists & records, basic graphics commands (e.g. VDOM, SVG, or like boxes & lines), and the native equivalent of invoking a function. By providing a different set of those per language or platform, and feeding the right one into the bootstrapper, the entire runtime can be loaded onto another platform exactly as it was before.
+- This running system can serialize itself and transfer itself over the wire (e.g. HTTP)
