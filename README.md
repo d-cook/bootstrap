@@ -70,25 +70,26 @@ _At this point, further development is done within the running system itself. "S
 
 _At this point, the runtime provides its own means (e.g. tools & language) for viewing, editing, and defining itself, or anything within it_
 
+8. With the MVP now complete, use it as it's own vehicle for further development and exploration
+
 ## Further development & exploration
 
 Once the runtime is fully self-hosted (above), it can be utilized & adapted to explore new possibilities.
 
-Here are just some of those possibilities:
+The possibilities are potentially limitless, but here are some that I have in mind:
 
 #### Use the runtime to modify itself further
 
-It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself, without utilizing any of that power in the development of said tool. Thus, the MVP is intentionally minimal and crude, so that that power can be utilized as early as possible to make further development & exploration more practical & achievable. Any gain in representation, tooling, generativity, etc, can be immediately & incrementally benefited from _as they come_.
+It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself, without utilizing any of that power in the development of said tool. Thus, the MVP is intentionally minimal and crude, so that that power can be utilized as early as possible to make further development & exploration more practical & achievable.
 
-The practicality of such developments (and of this process) are also vetted through immediately demonstratable improvements, and by standing as their own proof of concept (POC) for how increasinly well (e.g. rapidly, directly, immediately, etc) they can be utilized in their own development.
-
-Multiple / many different approaches and tools for such a runtime can be explored all at once, because:
-- It has programmatic access to everything in it, so changes be made programmatically / generatively
-- It can contain & run separate modifiable copies of itself
-- It can sandbox & test modifications, alternate runtime implementations, etc.
-- It can be swapped out piece-by-piece OR wholesale (i.e. "that's me over there") while running
-- It can be copied or regenerated at a whim - along with anything within it at the time
-- It can transfer itself as-is to other native runtimes or over the wire (see TBD)
+With the MVP complete, any changes in representation, tooling, generativity, etc. can be immediately utilized _as they come_, while also serving as an immediately observable a proof of concept (POC) for how they improve further development of themselves and/or other things.
+   
+There are many directions this can take, but options can be explored in parallel because:
+- The runtime be used to create & test separate implementations of itself or whatever else
+- Alternate runtimes (or other things) can be sandboxed (i.e. run & tested in isolation)
+- Changes can be done programmatically, and anything can be programmatically generated
+- The runtime can be swapped out piece-by-piece OR wholesale with something else, while running
+- The runtime can be copied or regenerated at a whim, along with anything within it at the time
 
 #### Bootstrap the power of software back into software development
 
