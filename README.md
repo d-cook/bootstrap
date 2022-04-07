@@ -78,9 +78,9 @@ Here are just some of those possibilities:
 
 #### Use the runtime to modify itself further
 
-It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself (see previous section), without utilizing any of that power in the development of said tool.
+It would be incredibily irconic to develop a tool that bootstraps the generative power of software into itself, without utilizing any of that power in the development of said tool. Thus, the MVP is intentionally minimal and crude, so that that power can be utilized as early as possible to make further development & exploration more practical & achievable. Any gain in representation, tooling, generativity, etc, can be immediately & incrementally benefited from _as they come_.
 
-Thus, the MVP is intentionally minimal and crude, so that that power can be utilized as early as possible to make the exploration of this space actually practical & achievable, both by immediately benefiting from any gain in representation / tooling / generative power / etc, and by demonstrating that practicality through direct experience and as a POC of the very thing being explored.
+The practicality of such developments (and of this process) are also vetted through immediately demonstratable improvements, and by standing as their own proof of concept (POC) for how increasinly well (e.g. rapidly, directly, immediately, etc) they can be utilized in their own development.
 
 Multiple / many different approaches and tools for such a runtime can be explored all at once, because:
 - It has programmatic access to everything in it, so changes be made programmatically / generatively
