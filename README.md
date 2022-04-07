@@ -91,6 +91,12 @@ There are many directions this can take, but options can be explored in parallel
 - The runtime can be swapped out piece-by-piece OR wholesale with something else, while running
 - The runtime can be copied or regenerated at a whim, along with anything within it at the time
 
+Some of the specific directions that can be taken:
+- Transfer the runtime to different platforms (e.g. languages / runtimes)
+  - The only "native code" needed for each is basic operators (+, -, if, etc), some implementation of lists & records, basic graphics commands (e.g. VDOM, SVG, or like boxes & lines), and the native equivalent of invoking a function.
+  - By providing a different set of those per language or platform, and feeding the right one into the bootstrapper, the entire runtime can be loaded onto another platform exactly as it was before
+- Ability for the runtime to serialize & send itself over the wire (e.g. HTTP)
+
 #### Bootstrap the power of software back into software development
 
 Software provides powerfully generative and dynamic tools & interfaces to do things that would be entirely impractical or impossible otherwise. Ironically, that same power is massively unutilized in the _development_ of said software. Instead of dynamic or generative representations, the software developer works with static, rigourously _written out descriptions_ **of** those dynamic and generative models.
@@ -99,16 +105,26 @@ This is a limitation of "programming languages", wherein the representation of s
 
 An alternative is to replace (or supplement) "source code" with whatever "living" (running) representations, models, etc. that best (i.e. more simply or directly) convey what the software "is" and "does", along with whatever (also "live") tools, interfaces, views, etc. that best allow the developer to work with (e.g. modify, generate, query, test) those models. A fully self-running live-representation allows such things to be defined in terms of themselves or each other, without ultimately falling back on rigorously written out textual descriptions that are just shifted up level.
 
-#### TODO: Make sections (as above) for the following:
-
-- Make better tools / alternatives to text-based "coding":
-  - Operate on values by manipulating them as objects, and your actions as recorded as code
-  - Boxes and arrows?
-  - Code that generates other code (e.g. from some business model)
-  - Explore other "language" models, e.g. static types
-    - Enforced by UI instead of compiler (i.e. can only build valid structures)
+Here are some _general_ coding alternatives I am considering:
+- Operate on values by manipulating them as objects, and your actions as recorded as code
+- Data as static lists / boxes, and arrows showing where (and when) the data flows and how it is combined
+- Generate code from some other domain- or application-specific model (not generalizable)
+- "Static types" enforced by UI instead of compiler (i.e. can only build valid structures)
 - Drag & drop editor for HTML / VDOM / CSS
 - Drag & drop shapes to create SVG images / graphics
-- Bootstrap the system to a different language or platform (assembly, JVM, CLR, etc.)
-<br>The only "native code" needed for each is basic operators (+, -, if, etc), some implementation of lists & records, basic graphics commands (e.g. VDOM, SVG, or like boxes & lines), and the native equivalent of invoking a function. By providing a different set of those per language or platform, and feeding the right one into the bootstrapper, the entire runtime can be loaded onto another platform exactly as it was before.
-- This running system can serialize itself and transfer itself over the wire (e.g. HTTP)
+- Create a common implementation (library) of many things, and a general way to compile it down whatever language
+- Create a "live" model of "code" for some _other_ language or system:
+  - The "code" is an AST (or something better), and can be programmatically edited
+  - Define values, logic, feature flags, etc. in _one common place_, and then programmatically apply it to "code" that targets different languages or servers
+  - The representation of the "code" can be interpretable here; testing hooks / fakes injected in ways not actually possible the "real" language
+  - An operation to "build it out" (generate the "actual" source code)
+  - Need to edit "generated" code? Sure, that can be done programmatically as well
+    - Not a specific line number/etc; but the code-equivalent of "the while-loop in that one function that does that thing"
+
+#### Empower non-programmers
+
+(TODO: This section better)
+
+Instead of the apps & tools handed to us, what if we could literally grab API for our own personal accounts and hook them up to our own logic, drag and drop style? Assuming tools are made to make this tennable.
+
+Brett Victor's idea: Just as literacy (writing, composing, etc) as a revolution for human development, the ability to freely create "computer stuff" could be a new kind of literacy. Instead of words, if people could just create runnable / working virtual models with their hands, and send or share them freely. This might require a new kind of "computing medium" -- Work on creating some such model or software tools for this. For one thing, instead of "apps", how about "objects"? Just like you can pick up a rock or frog and move it somewhere else, why not do the same with a computer "thing"? This requires a way for each thing to "run itself". This both describes this project here, _and_ how biology works: Why is a cell "alive" and a virus "not alive" (debatable)? The virus has "code" and can "duplicate itself", etc, but it is not its own "execution environment" - that is, it cannot "run itself". But that is what make s a living cell: It contains a coded representation of all parts of itself (or of all parts of things from which the rest of itself is generated). It contains all machinery needed to "run" that code (e.g. copy, synthesize protiens, etc), to duplicate itself, etc. And all those mechanisms are also accounted for in the code (DNA). The "environment" in which this happens has a defined boundary / container (cell membrane), and everything inside (including the boundary) "IS" the living thing. The boundary also acts as an interface through which the thing and the outside world interact. It is self-contained, self-running, self-defined, and therefore "alive" _in and of itself_. WHy does this matter? because all the things biology can do and has achieved, that computer science is still figuring out. And this is how it does it.
