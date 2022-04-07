@@ -125,6 +125,27 @@ Here are some _general_ coding alternatives I am considering:
 
 (TODO: This section better)
 
-Instead of the apps & tools handed to us, what if we could literally grab API for our own personal accounts and hook them up to our own logic, drag and drop style? Assuming tools are made to make this tennable.
+Instead of the apps & tools handed to us, what if we could literally grab API for our own personal accounts and hook them up to our own logic, drag and drop style? Assuming tools are made to make this tennable. This approaches Living Structure (see below) on a macro scale, but not on the micro (like cells - see below)
 
-Brett Victor's idea: Just as literacy (writing, composing, etc) as a revolution for human development, the ability to freely create "computer stuff" could be a new kind of literacy. Instead of words, if people could just create runnable / working virtual models with their hands, and send or share them freely. This might require a new kind of "computing medium" -- Work on creating some such model or software tools for this. For one thing, instead of "apps", how about "objects"? Just like you can pick up a rock or frog and move it somewhere else, why not do the same with a computer "thing"? This requires a way for each thing to "run itself". This both describes this project here, _and_ how biology works: Why is a cell "alive" and a virus "not alive" (debatable)? The virus has "code" and can "duplicate itself", etc, but it is not its own "execution environment" - that is, it cannot "run itself". But that is what make s a living cell: It contains a coded representation of all parts of itself (or of all parts of things from which the rest of itself is generated). It contains all machinery needed to "run" that code (e.g. copy, synthesize protiens, etc), to duplicate itself, etc. And all those mechanisms are also accounted for in the code (DNA). The "environment" in which this happens has a defined boundary / container (cell membrane), and everything inside (including the boundary) "IS" the living thing. The boundary also acts as an interface through which the thing and the outside world interact. It is self-contained, self-running, self-defined, and therefore "alive" _in and of itself_. WHy does this matter? because all the things biology can do and has achieved, that computer science is still figuring out. And this is how it does it.
+Brett Victor & Alan Kay on computer literacy / revolution; and Christopher Alexander on Living Structure:
+- Just as literacy (writing, composing, etc) as a revolution for human development, the ability to freely create "computer stuff" could be a new kind of literacy. Instead of words, if people could just create runnable / working virtual models with their hands, and send or share them freely. This might require a new kind of "computing medium"
+- Work on creating some such model or software tools for this. For one thing, instead of "apps", how about "objects"? Just like you can pick up a rock or frog and move it somewhere else, why not do the same with a computer "thing"? This requires a way for each thing to "run itself".
+- This both describes this project here, _and_ how biology works:
+  - Why is a cell "alive" and a virus "not alive" (debatable)?
+  - The virus has "code" and can "duplicate itself", etc, but it is not its own "execution environment" - that is, it cannot "run itself"
+  - But that is what make s a living cell:
+    - contains coded representation of all parts of itself (or of all parts of things from which the rest of itself is generated)
+    - contains all machinery needed to "run" that code (e.g. copy, synthesize protiens, etc), to duplicate itself, etc.
+    - And all those mechanisms are also accounted for in the code (DNA).
+    - The "environment" in which this happens has a defined boundary / container (cell membrane), and everything inside (including the boundary) "IS" the living thing.
+    - The boundary also acts as an interface through which the thing and the outside world interact.
+    - It is self-contained, self-running, self-defined, and therefore "alive" _in and of itself_.
+  - Why does this matter?
+    - All the things biology can do and has achieved, that computer science is still figuring out - this is how it does it.
+    - Not just about technical / mechanical ability, but living structure (Christopher Alexander)
+      - This includes not just life, but the structures created by & that sustain life.
+      - Anything that living things do, or operate within, needs to be a "good" living structure itself, the living things suffer and so does the environment
+      - That is the status quo of the modern built world, and of the more modern world built upon software. Humanity operates and lives upon and within it; and what is it doing to sustain or contribute to that life?
+      - It cannot adapt or change in response to the needs of those using it; those using it cannot shape it as they need.
+      - How can this be solved? By finding a way to bootstrap that living structure into software, so that it is even _capable_ of being organically adapted and evolving to the "best fit".
+
