@@ -1,5 +1,5 @@
 <html><title>Bootstrap (regenerated)</title><script type="application/javascript">
-(function bootstrap(){const e = [{"$":[0],"testInput":[1],"flatten":(value) => {
+(function bootstrap(){const e = [{"$":[0],"testInput":"Try entering JSON here!","flatten":(value) => {
   return Array.isArray(value) ? [].concat(...value.map($.flatten)) : value;
 },"h":(type, props, ...children) => {
   props = props || {};
@@ -777,7 +777,7 @@ div:hover > .add-button {
   document.body.innerHTML = '';
   document.title = title.endsWith(regen) ? title : title + regen;
   setTimeout(() => document.head.appendChild(bootScript));
-},"serialize":(obj) => {
+},"dehydrate":(obj) => {
   const values = [];
   const entries = [];
   const addEntry = (value) => {
@@ -794,7 +794,7 @@ div:hover > .add-button {
   };
   addEntry(obj);
   return entries;
-},"hydrateEntries":(entries) => {
+},"rehydrate":(entries) => {
   entries.forEach(entry => {
     Object.keys(entry).forEach(k => {
       const v = entry[k];
@@ -803,21 +803,23 @@ div:hover > .add-button {
       }
     })
   });
-  return entries;
+  return entries[0];
+},"serialize":(obj) => {
+  return $.stringify($.dehydrate(obj));
+},"deserialize":(entriesStr) => {
+  let entries = undefined;
+  try { eval('(entries = (' + entriesStr + '));'); }
+  catch (cause) { return null; }
+  return $.rehydrate(entries);
 },"deepCopy":(obj) => {
-  let result = undefined;
-  try { eval('(result = (' + $.stringify(obj) + '));'); }
-  catch (cause) { throw new Error('Unable to deep-copy', { cause }); }
-  return result;
-},"deserialize":(entries) => {
-  return $.hydrateEntries($.deepCopy(entries));
+  return $.deserialize($.serialize(obj));
 },"generateBootstrapCode":() => {
-  const entries = $.stringify($.serialize($));
+  const entries = $.serialize($);
   return '(function bootstrap(){' +
     'const e = ' + entries + ';' +
     'const $ = e[0];' +
-    '$.hydrateEntries(e);' +
+    '$.rehydrate(e);' +
     '$.initialize();' +
   '}())';
-}},["Try entering JSON here!"]];const $ = e[0];$.hydrateEntries(e);$.initialize();}())
+}}];const $ = e[0];$.rehydrate(e);$.initialize();}())
 </script><body></body></html>
