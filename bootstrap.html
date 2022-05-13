@@ -486,15 +486,74 @@ button {
   row-gap: 4px;
 }
 .console textarea,
-.console .result {
+.console .outputs {
   background-color: white;
   border: 1px solid #888888;
   min-width: 250px;
   min-height: 40px;
+  padding: 2px;
   margin: 0;
 }
-.console button {
-  align-self: flex-start;
+.console .buttons {
+  display: flex;
+  flex-direction: row;
+  column-gap: 2px;
+  align-items: flex-start;
+}
+.console .outputs {
+  display: flex;
+  flex-direction: column;
+  font-family: monospace;
+  row-gap: 2px;
+  max-height: 120px;
+  overflow-y: scroll;
+}
+.console .output {
+  padding: 1px;
+  color: #555555;
+}
+.console .output.info { color: #0000FF; }
+.console .output.warn { color: #BB8800; }
+.console .output.err  { color: #FF0000; }
+.console .output:hover {
+  background-color: #F8F8F8;
+}
+.console .output.info:hover {
+  background-color: #F8F8FF;
+}
+.console .output.warn:hover {
+  background-color: #FCFCCC;
+}
+.console .output.err:hover {
+  background-color: #FFF4F4;
+}
+.console .indicator:before {
+  content: "   ";
+  white-space: pre;
+  display: inline-block;
+  letter-spacing: -2px;
+  margin-right: 4px;
+  font-size: 11px;
+  text-align: center;
+  width: 14px;
+}
+.console .eval .indicator:before {
+  content: " >";
+}
+.console .result .indicator:before {
+  content: " =";
+}
+.console .log .indicator:before {
+  content: "...";
+}
+.console .info .indicator:before {
+  content: "(i)";
+}
+.console .warn .indicator:before,
+.console .err .indicator:before {
+  font-size: 10px;
+  content: "/!\\\\";
+  text-decoration: underline;
 }
 .css-editor {
   border-radius: 4px;
@@ -690,30 +749,66 @@ div:hover > .add-button {
 }
   `.trim();
 
-  const JSConsole = $.Component(({ value, input, result }, update) => {
-    let output = '';
-    try { output = JSON.stringify(result); }
-    catch (ex) { output = String(result); }
-    const textDiv = document.createElement('div');
-    textDiv.textContent = String(output);
-    output = textDiv.innerHTML;
+  const JSConsole = $.Component(({ value, input, outputs }, update) => {
+    const writeLogs = (logs) => {
+      update({ value, input, outputs: outputs.concat(logs) });
+      setTimeout(() => {
+        const cons = document.querySelector('.console .outputs');
+        cons.scrollTop = cons.scrollHeight;
+      });
+    };
+    const capture = (cb = writeLogs) => {
+      ['log','info','error','warn'].forEach(kind => {
+        console[kind] = (...args) => {
+          cb(args.map(value => ({ value, kind })));
+        };
+      });
+    };
+    capture();
+
     return $.h('div', { className: 'console' }, 'CONSOLE:',
       $.textEditor(value, input, (state) => {
         value = input = state.input;
-        update({ value, input, result });
+        update({ value, input, outputs });
       }),
-      $.h('button', {
-        type: 'button',
-        onClick: () => {
-          let result = undefined;
-          try { eval('(result = (' + value + '));'); }
-          catch (ex) { result = ex.toString(); }
-          update({ value, input, result });
-        }
-      }, '> RUN'),
-      $.h('pre', { className: 'result' }, output)
+      $.h('div', { className: 'buttons' },
+        $.h('button', {
+          type: 'button',
+          onClick: () => {
+            let evalLogs = [{ value, kind: 'eval' }];
+            capture(logs => { evalLogs = evalLogs.concat(logs); });
+            try {
+              let result = undefined;
+              eval('(result = (' + value + '));');
+              try { result = JSON.stringify(result, null, 2); }
+              catch (ex2) { result = String(result); }
+              evalLogs.push({ value: result, kind: 'result' });
+            }
+            catch (ex) {
+              console.error(ex.toString());
+            }
+            capture();
+            writeLogs(evalLogs);
+          }
+        }, '> RUN'),
+        $.h('button', {
+          type: 'button',
+          onClick: () => {
+            update({ value, input, outputs: [] });
+          }
+        }, 'CLEAR')
+      ),
+      $.h('div', { className: 'outputs' },
+        outputs.map(o => {
+          const kind = (o.kind === 'error') ? 'err' : o.kind;
+          return $.h('div', { className: 'output ' + kind },
+            $.h('span', { className: 'indicator' }),
+            String(o.value)
+          );
+        })
+      )
     );
-  }, { value: 'alert("Hello, world!")' });
+  }, { value: 'alert("Hello, world!")', outputs: [] });
   
   const Regenerator = $.Component(() => {
     return $.h('div', { className: 'regenerator' },
