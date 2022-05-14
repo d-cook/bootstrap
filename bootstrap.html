@@ -33,206 +33,7 @@
   items.splice(i, 1); return items;
 },"insertItem":(items, i, item) => {
   items.splice(i, 0, item); return items;
-},"xButton":(onClick) => {
-  return $.vdom.h('button', { className: 'x-button', onClick }, 'X')
-},"cycleIndicator":(depth) => {
-  return $.vdom.h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
-},"valueEditorOrCycle":(value, input, path, update) => {
-  const parentIdx = path.indexOf(value);
-  return (parentIdx >= 0) ? $.cycleIndicator(path.length - parentIdx) :
-    $.anyValueEditor(value, input, path.concat([value]), update);
-},"textEditor":(value, input, update, isValid) => {
-  if (typeof input !== 'string') { input = value; }
-  if (typeof isValid !== 'function') { isValid = () => true; }
-  const isChanged = () => (input !== value);
-  const lines = input.split('\n');
-  const updateInput = (e) => {
-    input = e.target.value;
-    update({ value, input });
-  };
-  const saveValidChanges = () => {
-    if (isChanged() && isValid(input)) {
-      update({ value: input, input });
-    }
-  };
-  return $.vdom.h('textarea', {
-    className: 'text-editor' + (
-      !isValid(input) ? ' error' :
-      isChanged( ) ? ' changed' : ''
-    ),
-    style: 'resize:none',
-    value: input,
-    rows: lines.length,
-    cols: Math.max(1, ...lines.map(s => s.length - 1)),
-    onInput: updateInput,
-    onFocus: updateInput,
-    onBlur : saveValidChanges,
-    onKeyUp: ({ key, ctrlKey }) => {
-      if (key === 'Enter' && ctrlKey && isChanged() && isValid(input)) {
-        saveValidChanges();
-      }
-      if (key === 'Escape') {
-        // TODO: These are really just needed for func-editor
-        document.activeElement.blur();
-        document.activeElement.scrollTop = 0;
-        document.activeElement.scrollLeft = 0;
-        update({ value, input: value });
-      }
-    }
-  });
-},"jsonEditor":(value, input, update) => {
-  const json = JSON.stringify(value, null, 2);
-  const updateJson = ({ value, input }) => {
-    try {
-      if (value !== json) { input = input.trim(); }
-      value = JSON.parse(value);
-      if ($.isListOrRecord(value)) { input = null; }
-    } catch(ex) { }
-    update({ value, input });
-  };
-  const isValid = (text) => {
-    try { JSON.parse(text); return true; }
-    catch(ex) { return false; }
-  };
-  return $.textEditor(json, input, updateJson, isValid)
-},"listEditor":(value, input, path, update) => {
-  input = input || { i: -1 };
-  return $.vdom.h('div', { className: 'list-editor' },
-    value.map((v, i) =>
-      $.vdom.h('div', { key: i, className: 'editor-row' },
-        $.xButton(() => {
-          value = $.removeItem(value, i);
-          update({ value, input: null });
-        }),
-        $.valueEditorOrCycle(
-          v,
-          (input.i === i ? input.value : null),
-          path,
-          (state) => {
-            value[i] = state.value;
-            input = (state.input === null) ? null :
-              { i, value: state.input };
-            update({ value, input });
-          }
-        )
-      )
-    ),
-    $.vdom.h('button', {
-      className: 'add-button',
-      onClick: (e) => {
-        const nums = value.filter(n => parseInt(n) === n);
-        const next = (nums.length > 0) ? Math.max(...nums) + 1 : value.length;
-        value.push(next);
-        update({ value, input: null });
-      }
-    }, '+')
-  );
-},"recordEditor":(value, input, path, update) => {
-  input = input || { k: null, v: null };
-  return $.vdom.h('div', { className: 'record-editor' },
-    Object.entries(value).map(([k, v], i) =>
-      $.vdom.h('div', { key: i, className: 'editor-row' },
-        $.xButton(() => {
-          delete value[k];
-          update({ value, input: null });
-        }),
-        $.textEditor(k, (input.k === k ? input.value : null), (state) => {
-          input = (state.input === null) ? null :
-            { k: state.value, value: state.input };
-          if (state.value !== k) {
-            const keys = Object.keys(value);
-            const keyIndex = keys.indexOf(state.value);
-            // The new key becomes last entry or is an already existing entry:
-            const newIndex = (keyIndex < 0) ? keys.length - 1 : keyIndex;
-            const val = value[k];
-            delete value[k];
-            value[state.value] = val;
-            const parentEditor = document.activeElement.parentNode.parentNode;
-            // "Keep" focus on the same key by re-focusing on it after next render:
-            setTimeout(() => {
-              parentEditor.children[newIndex].querySelector('.text-editor').focus();
-            });
-          }
-          update({ input, value });
-        }),
-        $.vdom.h('span', { className: 'colon' }, ':'),
-        $.valueEditorOrCycle(
-          v,
-          (input.v === v ? input.value : null),
-          path,
-          (state) => {
-            value[k] = state.value;
-            input = (state.input === null) ? null :
-              { v: state.value, value: state.input };
-            update({ value, input });
-          }
-        )
-      )
-    ),
-    $.vdom.h('button', {
-      className: 'add-button',
-      onClick: (e) => {
-        const allKeys = Object.keys(value);
-        const numKeys = (allKeys
-          .filter(k => /^_\d+_$/.test(k))
-          .map(k => parseInt(k.slice(1, k.length - 1)))
-          .concat(allKeys.length)
-        );
-        const nextNum = Math.max(...numKeys) + 1;
-        value['_' + nextNum + '_'] = nextNum;
-        update({ value, input: null });
-      }
-    }, '+')
-  );
-},"funcEditor":(value, input, update) => {
-  input = input || value.toString();
-  return $.vdom.h('div', { className: 'func-editor' },
-    $.textEditor(value.toString(), input, (state) => {
-      if (state.value !== value.toString()) {
-        value = $.parseFunc(state.value) || value;
-      }
-      input = state.input;
-      update({ value, input });
-    }, $.parseFunc)
-  );
-},"anyValueEditor":(value, input, path, update) => {
-  const type = $.getType(value);
-  return (
-    (type === 'list'    ) ? $.listEditor  (value, input, path, update) :
-    (type === 'record'  ) ? $.recordEditor(value, input, path, update) :
-    (type === 'function') ? $.funcEditor  (value, input, update) :
-                            $.jsonEditor  (value, input, update)
-  );
 },"initialize":() => {
-  const ValueEditor = $.vdom.Component(({ value, input }, update) => {
-    return $.anyValueEditor(value, input, [value], update);
-  }, { value: null });
-
-  const GlobalCssEditor = $.vdom.Component(({ css }, update) => {
-    const head = document.getElementsByTagName('head')[0];
-    let styleTag = head.getElementsByTagName('style')[0];
-    if (!styleTag) {
-      styleTag = document.createElement('style');
-      head.appendChild(styleTag);
-    }
-    styleTag.innerHTML = css;
-    const lines = css.split('\n');
-    const cols = Math.max(...lines.map(L => L.length));
-    const rows = lines.length;
-    return (
-      $.vdom.h('div', { className: 'css-editor' },
-        $.vdom.h('p', {}, 'Global CSS:'),
-        $.vdom.h('textarea', {
-          rows, cols,
-          onInput: (e) => {
-            css = e.target.value;
-            update({ css });
-          }
-        }, css)
-      )
-    );
-  }, { css: '' });
-
   const globalCss = `
 body {
   display: grid;
@@ -539,104 +340,12 @@ div:hover > .add-button {
 }
   `.trim();
 
-  const JSConsole = $.vdom.Component(({ value, input, outputs }, update) => {
-    const writeLogs = (logs) => {
-      update({ value, input, outputs: outputs.concat(logs) });
-      setTimeout(() => {
-        const cons = document.querySelector('.console .outputs');
-        cons.scrollTop = cons.scrollHeight;
-      });
-    };
-    const capture = (cb = writeLogs) => {
-      ['log','info','error','warn'].forEach(kind => {
-        console[kind] = (...args) => {
-          cb(args.map(value => ({ value, kind })));
-        };
-      });
-    };
-    capture();
-
-    return $.vdom.h('div', { className: 'console' }, 'CONSOLE:',
-      $.textEditor(value, input, (state) => {
-        value = input = state.input;
-        update({ value, input, outputs });
-      }),
-      $.vdom.h('div', { className: 'buttons' },
-        $.vdom.h('button', {
-          type: 'button',
-          onClick: () => {
-            let evalLogs = [{ value, kind: 'eval' }];
-            capture(logs => { evalLogs = evalLogs.concat(logs); });
-            try {
-              let result = undefined;
-              eval('(result = (' + value + '));');
-              try { result = JSON.stringify(result, null, 2); }
-              catch (ex2) { result = String(result); }
-              evalLogs.push({ value: result, kind: 'result' });
-            }
-            catch (ex) {
-              console.error(ex.toString());
-            }
-            capture();
-            writeLogs(evalLogs);
-          }
-        }, '> RUN'),
-        $.vdom.h('button', {
-          type: 'button',
-          onClick: () => {
-            update({ value, input, outputs: [] });
-          }
-        }, 'CLEAR')
-      ),
-      $.vdom.h('div', { className: 'outputs' },
-        outputs.map(o => {
-          const kind = (o.kind === 'error') ? 'err' : o.kind;
-          return $.vdom.h('div', { className: 'output ' + kind },
-            $.vdom.h('span', { className: 'indicator' }),
-            String(o.value)
-          );
-        })
-      )
-    );
-  }, { value: 'alert("Hello, world!")', outputs: [] });
-  
-  const Regenerator = $.vdom.Component(() => {
-    return $.vdom.h('div', { className: 'regenerator' },
-      $.vdom.h('div', {}, 'Regenerate the entire app in its current state?'),
-      $.vdom.h('button', {
-        type: 'button',
-        onClick: $.regeneratePage
-      }, 'Regenerate the page from scratch!'),
-      $.vdom.h('button', {
-        type: 'button',
-        onClick: () => {
-          $.regeneratePage();
-          setTimeout(() => {
-            const title = '<title>' + document.title + '</title>';
-            const script = document.head.querySelector('script').outerHTML;
-            const html = '<html>' + title + script + '<body></body></html>';
-            $.download(html, 'text/html', 'bootstrap.html');
-          }, 200);
-        }
-      }, 'Download as self-bootstrapping HTML document'),
-      $.vdom.h('button', {
-        type: 'button',
-        onClick: () => {
-          $.regeneratePage();
-          setTimeout(() => {
-            const code = document.head.querySelector('script').innerHTML;
-            $.download(code, 'application/javascript', 'bootstrap.js');
-          }, 200);
-        }
-      }, 'Download as self-bootstrapping JavaScript document')
-    );
-  }, { doDelay: false });
-
   $.afterWindowLoad(() => {
-    GlobalCssEditor({ css: globalCss }).appendTo(document.body);
-    Regenerator().appendTo(document.body);
-    JSConsole().appendTo(document.body);
-    ValueEditor({ value: $ }).appendTo(document.body);
+    $.vdom.makeComponent($.view.globalCssEditor, { css: globalCss }).appendTo(document.body);
+    $.vdom.makeComponent($.view.bootOptions).appendTo(document.body);
+    $.vdom.makeComponent($.view.globalConsole,
+      { value: 'alert("Hello, world!")', outputs: [] }).appendTo(document.body);
+    $.vdom.makeComponent($.view.valueEditor, { value: $ }).appendTo(document.body);
   });
 },"afterWindowLoad":(callback) => {
   if (document.readyState === 'complete') {
@@ -718,7 +427,7 @@ div:hover > .add-button {
   } catch (ex) {
     return null;
   }
-},"vdom":[1]},{"h":(type, props, ...children) => {
+},"vdom":[1],"view":[2]},{"h":(type, props, ...children) => {
   props = props || {};
   children = $.flatten(children);
   if (typeof type === 'function') {
@@ -916,6 +625,291 @@ div:hover > .add-button {
     render,
     initState || defaultState,
     target
+  );
+}},{"xButton":(onClick) => {
+  return $.vdom.h('button', { className: 'x-button', onClick }, 'X')
+},"cycleIndicator":(depth) => {
+  return $.vdom.h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
+},"valueEditorOrCycle":(value, input, path, update) => {
+  const parentIdx = path.indexOf(value);
+  return (parentIdx >= 0) ? $.view.cycleIndicator(path.length - parentIdx) :
+    $.view.anyValueEditor(value, input, path.concat([value]), update);
+},"textEditor":(value, input, update, isValid) => {
+  if (typeof input !== 'string') { input = value; }
+  if (typeof isValid !== 'function') { isValid = () => true; }
+  const isChanged = () => (input !== value);
+  const lines = input.split('\n');
+  const updateInput = (e) => {
+    input = e.target.value;
+    update({ value, input });
+  };
+  const saveValidChanges = () => {
+    if (isChanged() && isValid(input)) {
+      update({ value: input, input });
+    }
+  };
+  return $.vdom.h('textarea', {
+    className: 'text-editor' + (
+      !isValid(input) ? ' error' :
+      isChanged( ) ? ' changed' : ''
+    ),
+    style: 'resize:none',
+    value: input,
+    rows: lines.length,
+    cols: Math.max(1, ...lines.map(s => s.length - 1)),
+    onInput: updateInput,
+    onFocus: updateInput,
+    onBlur : saveValidChanges,
+    onKeyUp: ({ key, ctrlKey }) => {
+      if (key === 'Enter' && ctrlKey && isChanged() && isValid(input)) {
+        saveValidChanges();
+      }
+      if (key === 'Escape') {
+        // TODO: These are really just needed for func-editor
+        document.activeElement.blur();
+        document.activeElement.scrollTop = 0;
+        document.activeElement.scrollLeft = 0;
+        update({ value, input: value });
+      }
+    }
+  });
+},"jsonEditor":(value, input, update) => {
+  const json = JSON.stringify(value, null, 2);
+  const updateJson = ({ value, input }) => {
+    try {
+      if (value !== json) { input = input.trim(); }
+      value = JSON.parse(value);
+      if ($.isListOrRecord(value)) { input = null; }
+    } catch(ex) { }
+    update({ value, input });
+  };
+  const isValid = (text) => {
+    try { JSON.parse(text); return true; }
+    catch(ex) { return false; }
+  };
+  return $.view.textEditor(json, input, updateJson, isValid)
+},"listEditor":(value, input, path, update) => {
+  input = input || { i: -1 };
+  return $.vdom.h('div', { className: 'list-editor' },
+    value.map((v, i) =>
+      $.vdom.h('div', { key: i, className: 'editor-row' },
+        $.view.xButton(() => {
+          value = $.removeItem(value, i);
+          update({ value, input: null });
+        }),
+        $.view.valueEditorOrCycle(
+          v,
+          (input.i === i ? input.value : null),
+          path,
+          (state) => {
+            value[i] = state.value;
+            input = (state.input === null) ? null :
+              { i, value: state.input };
+            update({ value, input });
+          }
+        )
+      )
+    ),
+    $.vdom.h('button', {
+      className: 'add-button',
+      onClick: (e) => {
+        const nums = value.filter(n => parseInt(n) === n);
+        const next = (nums.length > 0) ? Math.max(...nums) + 1 : value.length;
+        value.push(next);
+        update({ value, input: null });
+      }
+    }, '+')
+  );
+},"recordEditor":(value, input, path, update) => {
+  input = input || { k: null, v: null };
+  return $.vdom.h('div', { className: 'record-editor' },
+    Object.entries(value).map(([k, v], i) =>
+      $.vdom.h('div', { key: i, className: 'editor-row' },
+        $.view.xButton(() => {
+          delete value[k];
+          update({ value, input: null });
+        }),
+        $.view.textEditor(k, (input.k === k ? input.value : null), (state) => {
+          input = (state.input === null) ? null :
+            { k: state.value, value: state.input };
+          if (state.value !== k) {
+            const keys = Object.keys(value);
+            const keyIndex = keys.indexOf(state.value);
+            // The new key becomes last entry or is an already existing entry:
+            const newIndex = (keyIndex < 0) ? keys.length - 1 : keyIndex;
+            const val = value[k];
+            delete value[k];
+            value[state.value] = val;
+            const parentEditor = document.activeElement.parentNode.parentNode;
+            // "Keep" focus on the same key by re-focusing on it after next render:
+            setTimeout(() => {
+              parentEditor.children[newIndex].querySelector('.text-editor').focus();
+            });
+          }
+          update({ input, value });
+        }),
+        $.vdom.h('span', { className: 'colon' }, ':'),
+        $.view.valueEditorOrCycle(
+          v,
+          (input.v === v ? input.value : null),
+          path,
+          (state) => {
+            value[k] = state.value;
+            input = (state.input === null) ? null :
+              { v: state.value, value: state.input };
+            update({ value, input });
+          }
+        )
+      )
+    ),
+    $.vdom.h('button', {
+      className: 'add-button',
+      onClick: (e) => {
+        const allKeys = Object.keys(value);
+        const numKeys = (allKeys
+          .filter(k => /^_\d+_$/.test(k))
+          .map(k => parseInt(k.slice(1, k.length - 1)))
+          .concat(allKeys.length)
+        );
+        const nextNum = Math.max(...numKeys) + 1;
+        value['_' + nextNum + '_'] = nextNum;
+        update({ value, input: null });
+      }
+    }, '+')
+  );
+},"funcEditor":(value, input, update) => {
+  input = input || value.toString();
+  return $.vdom.h('div', { className: 'func-editor' },
+    $.view.textEditor(value.toString(), input, (state) => {
+      if (state.value !== value.toString()) {
+        value = $.parseFunc(state.value) || value;
+      }
+      input = state.input;
+      update({ value, input });
+    }, $.parseFunc)
+  );
+},"anyValueEditor":(value, input, path, update) => {
+  const type = $.getType(value);
+  return (
+    (type === 'list'    ) ? $.view.listEditor  (value, input, path, update) :
+    (type === 'record'  ) ? $.view.recordEditor(value, input, path, update) :
+    (type === 'function') ? $.view.funcEditor  (value, input, update) :
+                            $.view.jsonEditor  (value, input, update)
+  );
+},"valueEditor":({ value, input }, update) => {
+  return $.view.anyValueEditor(value, input, [value], update);
+},"globalCssEditor":({ css }, update) => {
+  const head = document.getElementsByTagName('head')[0];
+  let styleTag = head.getElementsByTagName('style')[0];
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    head.appendChild(styleTag);
+  }
+  styleTag.innerHTML = css;
+  const lines = css.split('\n');
+  const cols = Math.max(...lines.map(L => L.length));
+  const rows = lines.length;
+  return (
+    $.vdom.h('div', { className: 'css-editor' },
+      $.vdom.h('p', {}, 'Global CSS:'),
+      $.vdom.h('textarea', {
+        rows, cols,
+        onInput: (e) => {
+          css = e.target.value;
+          update({ css });
+        }
+      }, css)
+    )
+  );
+},"globalConsole":({ value, input, outputs }, update) => {
+  const writeLogs = (logs, clear = false) => {
+    if (clear) { value = input = ''; }
+    update({ value, input, outputs: outputs.concat(logs) });
+    setTimeout(() => {
+      const cons = document.querySelector('.console .outputs');
+      cons.scrollTop = cons.scrollHeight;
+    });
+  };
+  const capture = (cb = writeLogs) => {
+    ['log','info','error','warn'].forEach(kind => {
+      console[kind] = (...args) => {
+        cb(args.map(value => ({ value, kind })));
+      };
+    });
+  };
+  capture();
+
+  return $.vdom.h('div', { className: 'console' }, 'CONSOLE:',
+    $.view.textEditor(value, input, (state) => {
+      value = input = state.input;
+      update({ value, input, outputs });
+    }),
+    $.vdom.h('div', { className: 'buttons' },
+      $.vdom.h('button', {
+        type: 'button',
+        onClick: () => {
+          let evalLogs = [{ value, kind: 'eval' }];
+          capture(logs => { evalLogs = evalLogs.concat(logs); });
+          try {
+            let result = undefined;
+            eval('(result = (' + value + '));');
+            try { result = JSON.stringify(result, null, 2); }
+            catch (ex2) { result = String(result); }
+            evalLogs.push({ value: result, kind: 'result' });
+          }
+          catch (ex) {
+            console.error(ex.toString());
+          }
+          capture();
+          writeLogs(evalLogs, true);
+        }
+      }, '> RUN'),
+      $.vdom.h('button', {
+        type: 'button',
+        onClick: () => {
+          update({ value, input, outputs: [] });
+        }
+      }, 'Clear Logs')
+    ),
+    $.vdom.h('div', { className: 'outputs' },
+      outputs.map(o => {
+        const kind = (o.kind === 'error') ? 'err' : o.kind;
+        return $.vdom.h('div', { className: 'output ' + kind },
+          $.vdom.h('span', { className: 'indicator' }),
+          String(o.value)
+        );
+      })
+    )
+  );
+},"bootOptions":() => {
+  return $.vdom.h('div', { className: 'regenerator' },
+    $.vdom.h('div', {}, 'Regenerate everything from current state:'),
+    $.vdom.h('button', {
+      type: 'button',
+      onClick: $.regeneratePage
+    }, 'Regenerate this entire page from scratch'),
+    $.vdom.h('button', {
+      type: 'button',
+      onClick: () => {
+        $.regeneratePage();
+        setTimeout(() => {
+          const title = '<title>' + document.title + '</title>';
+          const script = document.head.querySelector('script').outerHTML;
+          const html = '<html>' + title + script + '<body></body></html>';
+          $.download(html, 'text/html', 'bootstrap.html');
+        }, 200);
+      }
+    }, 'Download as self-bootstrapping HTML document'),
+    $.vdom.h('button', {
+      type: 'button',
+      onClick: () => {
+        $.regeneratePage();
+        setTimeout(() => {
+          const code = document.head.querySelector('script').innerHTML;
+          $.download(code, 'application/javascript', 'bootstrap.js');
+        }, 200);
+      }
+    }, 'Download as self-bootstrapping JavaScript document')
   );
 }}];const $ = e[0];$.rehydrate(e);$.initialize();}())
 </script><body></body></html>
