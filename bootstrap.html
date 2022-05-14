@@ -1,205 +1,6 @@
 <html><title>Bootstrap (regenerated)</title><script type="application/javascript">
 (function bootstrap(){const e = [{"$":[0],"testInput":"Try entering JSON here!","flatten":(value) => {
   return Array.isArray(value) ? [].concat(...value.map($.flatten)) : value;
-},"h":(type, props, ...children) => {
-  props = props || {};
-  children = $.flatten(children);
-  if (typeof type === 'function') {
-    const constructor = type;
-    type = 'vdom-component';
-    return { type, props, children, constructor };
-  }
-  if (!(type && type.type)) {
-    return { type, props, children };
-  }
-  const allProps = { ...type.props, ...props };
-  if (props.className && type.props.className) {
-    allProps.className = type.props.className + ' ' + props.className;
-  }
-  if (props.style && type.props.style) {
-    allProps.style = type.props.style + ';' + props.style;
-  }
-  return { ...type, props: allProps, children: type.children.concat(children) };
-},"setBooleanProp":(element, name, value) => {
-  if (value) {
-    element.setAttribute(name, name);
-    element[name] = true;
-  } else {
-    element.removeAttribute(name);
-    element[name] = false;
-  }
-},"isEventProp":(name) => {
-  return /^on/.test(name);
-},"extractEventName":(name) => {
-  return name.slice(2).toLowerCase();
-},"isCustomProp":(name) => {
-  return ['key', 'component', 'initState'].includes(name);
-},"setProp":(element, name, value) => {
-  if ($.isCustomProp(name)) {
-    return;
-  } else if (name === 'className') {
-    element.setAttribute('class', value);
-  } else if (name === 'value') {
-    element.value = value;
-  } else if ($.isEventProp(name)) {
-    const event = (typeof value === 'function') ? value : null;
-    element[name.toLowerCase()] = event;
-  } else if (typeof value === 'boolean') {
-    $.setBooleanProp(element, name, value);
-  } else {
-    element.setAttribute(name, value);
-  }
-},"removeProp":(element, name, value) => {
-  if ($.isCustomProp(name)) {
-    return;
-  } else if (name === 'className') {
-    element.removeAttribute('class');
-  } else if (name === 'value') {
-    element.value = '';
-  } else if ($.isEventProp(name)) {
-    element[name.toLowerCase()] = null;
-  } else if (typeof value === 'boolean') {
-    $.setBooleanProp(element, name, false);
-  } else {
-    element.removeAttribute(name);
-  }
-},"setProps":(element, props) => {
-  Object.keys(props).forEach(name => {
-    $.setProp(element, name, props[name]);
-  });
-},"isNothing":(val) => {
-  return val === null || (typeof val === 'undefined');
-},"updateProp":(element, name, newVal, oldVal) => {
-  if ($.isNothing(newVal)) {
-    $.removeProp(element, name, oldVal);
-  } else if ($.isNothing(oldVal) || newVal !== oldVal) {
-    $.setProp(element, name, newVal);
-  } else if (name === 'value' && newVal !== element.value) {
-    $.setProp(element, name, newVal);
-  }
-},"updateProps":(element, newProps, oldProps = {}) => {
-  const props = Object.assign({}, newProps, oldProps);
-  Object.keys(props).forEach(name => {
-    $.updateProp(element, name, newProps[name], oldProps[name]);
-  });
-},"createElement":(node) => {
-  if (typeof node === 'string') {
-    return document.createTextNode(node);
-  } else if (node.type === 'vdom-component') {
-    node.component = node.constructor(node.props.initState);
-    return node.component.getElement();
-  }
-  const element = document.createElement(node.type);
-  $.setProps(element, node.props);
-  node.children
-    .map($.createElement)
-    .forEach(el => element.appendChild(el));
-  return element;
-},"hasChanged":(node1, node2) => {
-  return typeof node1 !== typeof node2 ||
-         typeof node1 === 'string' && node1 !== node2 ||
-         node1.type !== node2.type ||
-         node1.constructor !== node2.constructor;
-},"updateElement":(parent, newNode, oldNode, index = 0) => {
-  if ($.isNothing(oldNode)) {
-    if ($.isNothing(newNode)) { return; }
-    if (index < parent.childNodes.length) {
-      parent.insertBefore(
-        $.createElement(newNode),
-        parent.childNodes[index]
-      );
-    } else {
-      parent.appendChild(
-        $.createElement(newNode)
-      );
-    }
-  } else if ($.isNothing(newNode)) {
-    parent.removeChild(
-      parent.childNodes[index]
-    );
-  } else if ($.hasChanged(newNode, oldNode)) {
-    parent.replaceChild(
-      $.createElement(newNode),
-      parent.childNodes[index]
-    );
-  } else if (newNode.type === 'vdom-component') {
-    newNode.component = oldNode.component;
-    newNode.component.update();
-  } else if (newNode.type) {
-    $.updateProps(
-      parent.childNodes[index],
-      newNode.props,
-      oldNode.props
-    );
-    $.updateElements(
-      parent.childNodes[index],
-      newNode.children,
-      oldNode.children
-    );
-  }
-},"getKey":(node, i) => {
-  return (node && node.props && node.props.key) || '#' + i;
-},"matchNodes":(newNodes, oldNodes) => {
-  let ni = 0;
-  let pairs = [];
-  const newKeys = newNodes.map($.getKey);
-  oldNodes.forEach((on, oi) => {
-    let mi = newKeys.indexOf($.getKey(on, oi), ni);
-    if (mi < 0) {
-      pairs.push([null, on]);
-    } else {
-      pairs = pairs.concat(newNodes.slice(ni, mi).map(v => [v, null]));
-      pairs.push([newNodes[mi], on]);
-      ni = mi + 1;
-    }
-  });
-  if (ni < newNodes.length) {
-    pairs = pairs.concat(newNodes.slice(ni).map(v => [v, null]));
-  }
-  return pairs;
-},"updateElements":(parent, newNodes, oldNodes) => {
-  const nodePairs = $.matchNodes(newNodes, oldNodes);
-  let removedCount = 0;
-  nodePairs.forEach((pair, i) => {
-    const [n, o] = pair;
-    $.updateElement(parent, n, o, i - removedCount);
-    if ($.isNothing(n)) { removedCount++; }
-  });
-},"makeComponent":(render, initState, target) => {
-  let prevState = initState || {};
-  let prevContent = null;
-  const update = (state) => {
-    state = state || prevState;
-    let content = render(state, update);
-    if (Array.isArray(content)) {
-      content = $.flatten(content);
-      $.updateElements(target, content, prevContent || []);
-    } else {
-      $.updateElement(target, content, prevContent);
-    }
-    prevContent = content;
-    prevState = state;
-  };
-  const getElementFromRef = (ref) => (
-    (typeof ref === 'string'  ) ? document.querySelector(ref) :
-    (typeof ref === 'function') ? ref() : ref
-  );
-  const appendTo = (parent) => {
-    parent = getElementFromRef(parent);
-    if (parent && parent.appendChild) {
-      parent.appendChild(target);
-    }
-  }
-  target = getElementFromRef(target) ||
-    document.createElement('vdom-component');
-  update();
-  return { update, appendTo, getElement: () => target };
-},"Component":(render, defaultState) => {
-  return (initState, target) => $.makeComponent(
-    render,
-    initState || defaultState,
-    target
-  );
 },"getType":(value) => {
   const type = typeof value;
   if (['string', 'number', 'function'].includes(type)) { return type; }
@@ -233,9 +34,9 @@
 },"insertItem":(items, i, item) => {
   items.splice(i, 0, item); return items;
 },"xButton":(onClick) => {
-  return $.h('button', { className: 'x-button', onClick }, 'X')
+  return $.vdom.h('button', { className: 'x-button', onClick }, 'X')
 },"cycleIndicator":(depth) => {
-  return $.h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
+  return $.vdom.h('div', { className: 'cycle-indicator' }, '^' + depth + '^');
 },"valueEditorOrCycle":(value, input, path, update) => {
   const parentIdx = path.indexOf(value);
   return (parentIdx >= 0) ? $.cycleIndicator(path.length - parentIdx) :
@@ -254,7 +55,7 @@
       update({ value: input, input });
     }
   };
-  return $.h('textarea', {
+  return $.vdom.h('textarea', {
     className: 'text-editor' + (
       !isValid(input) ? ' error' :
       isChanged( ) ? ' changed' : ''
@@ -296,9 +97,9 @@
   return $.textEditor(json, input, updateJson, isValid)
 },"listEditor":(value, input, path, update) => {
   input = input || { i: -1 };
-  return $.h('div', { className: 'list-editor' },
+  return $.vdom.h('div', { className: 'list-editor' },
     value.map((v, i) =>
-      $.h('div', { key: i, className: 'editor-row' },
+      $.vdom.h('div', { key: i, className: 'editor-row' },
         $.xButton(() => {
           value = $.removeItem(value, i);
           update({ value, input: null });
@@ -316,7 +117,7 @@
         )
       )
     ),
-    $.h('button', {
+    $.vdom.h('button', {
       className: 'add-button',
       onClick: (e) => {
         const nums = value.filter(n => parseInt(n) === n);
@@ -328,9 +129,9 @@
   );
 },"recordEditor":(value, input, path, update) => {
   input = input || { k: null, v: null };
-  return $.h('div', { className: 'record-editor' },
+  return $.vdom.h('div', { className: 'record-editor' },
     Object.entries(value).map(([k, v], i) =>
-      $.h('div', { key: i, className: 'editor-row' },
+      $.vdom.h('div', { key: i, className: 'editor-row' },
         $.xButton(() => {
           delete value[k];
           update({ value, input: null });
@@ -354,7 +155,7 @@
           }
           update({ input, value });
         }),
-        $.h('span', { className: 'colon' }, ':'),
+        $.vdom.h('span', { className: 'colon' }, ':'),
         $.valueEditorOrCycle(
           v,
           (input.v === v ? input.value : null),
@@ -368,7 +169,7 @@
         )
       )
     ),
-    $.h('button', {
+    $.vdom.h('button', {
       className: 'add-button',
       onClick: (e) => {
         const allKeys = Object.keys(value);
@@ -385,25 +186,14 @@
   );
 },"funcEditor":(value, input, update) => {
   input = input || value.toString();
-  const parseFunc = (src) => {
-    const cleanSrc = src.replace(/\/\/[^\n]*\n|\/\*(.|\n)*\*\//g, ' ').trim();
-    if (
-      !/^function\s*\w*\s*\((.|\n)*\)\s*\{(.|\n)*\}$/.test(cleanSrc) &&
-      !/^(\((.|\n)*\)|\w+)\s*=>\s*(\{(.|\n)*\}|\((.|\n)*\))$/.test(cleanSrc)
-    ) { return null; }
-    try {
-      const func = eval('(' + src + ')');
-      return (typeof func === 'function') ? func : null;
-    } catch (ex) { }
-  };
-  return $.h('div', { className: 'func-editor' },
+  return $.vdom.h('div', { className: 'func-editor' },
     $.textEditor(value.toString(), input, (state) => {
       if (state.value !== value.toString()) {
-        value = parseFunc(state.value) || value;
+        value = $.parseFunc(state.value) || value;
       }
       input = state.input;
       update({ value, input });
-    }, parseFunc)
+    }, $.parseFunc)
   );
 },"anyValueEditor":(value, input, path, update) => {
   const type = $.getType(value);
@@ -414,11 +204,11 @@
                             $.jsonEditor  (value, input, update)
   );
 },"initialize":() => {
-  const ValueEditor = $.Component(({ value, input }, update) => {
+  const ValueEditor = $.vdom.Component(({ value, input }, update) => {
     return $.anyValueEditor(value, input, [value], update);
   }, { value: null });
 
-  const GlobalCssEditor = $.Component(({ css }, update) => {
+  const GlobalCssEditor = $.vdom.Component(({ css }, update) => {
     const head = document.getElementsByTagName('head')[0];
     let styleTag = head.getElementsByTagName('style')[0];
     if (!styleTag) {
@@ -430,9 +220,9 @@
     const cols = Math.max(...lines.map(L => L.length));
     const rows = lines.length;
     return (
-      $.h('div', { className: 'css-editor' },
-        $.h('p', {}, 'Global CSS:'),
-        $.h('textarea', {
+      $.vdom.h('div', { className: 'css-editor' },
+        $.vdom.h('p', {}, 'Global CSS:'),
+        $.vdom.h('textarea', {
           rows, cols,
           onInput: (e) => {
             css = e.target.value;
@@ -749,7 +539,7 @@ div:hover > .add-button {
 }
   `.trim();
 
-  const JSConsole = $.Component(({ value, input, outputs }, update) => {
+  const JSConsole = $.vdom.Component(({ value, input, outputs }, update) => {
     const writeLogs = (logs) => {
       update({ value, input, outputs: outputs.concat(logs) });
       setTimeout(() => {
@@ -766,13 +556,13 @@ div:hover > .add-button {
     };
     capture();
 
-    return $.h('div', { className: 'console' }, 'CONSOLE:',
+    return $.vdom.h('div', { className: 'console' }, 'CONSOLE:',
       $.textEditor(value, input, (state) => {
         value = input = state.input;
         update({ value, input, outputs });
       }),
-      $.h('div', { className: 'buttons' },
-        $.h('button', {
+      $.vdom.h('div', { className: 'buttons' },
+        $.vdom.h('button', {
           type: 'button',
           onClick: () => {
             let evalLogs = [{ value, kind: 'eval' }];
@@ -791,18 +581,18 @@ div:hover > .add-button {
             writeLogs(evalLogs);
           }
         }, '> RUN'),
-        $.h('button', {
+        $.vdom.h('button', {
           type: 'button',
           onClick: () => {
             update({ value, input, outputs: [] });
           }
         }, 'CLEAR')
       ),
-      $.h('div', { className: 'outputs' },
+      $.vdom.h('div', { className: 'outputs' },
         outputs.map(o => {
           const kind = (o.kind === 'error') ? 'err' : o.kind;
-          return $.h('div', { className: 'output ' + kind },
-            $.h('span', { className: 'indicator' }),
+          return $.vdom.h('div', { className: 'output ' + kind },
+            $.vdom.h('span', { className: 'indicator' }),
             String(o.value)
           );
         })
@@ -810,14 +600,14 @@ div:hover > .add-button {
     );
   }, { value: 'alert("Hello, world!")', outputs: [] });
   
-  const Regenerator = $.Component(() => {
-    return $.h('div', { className: 'regenerator' },
-      $.h('div', {}, 'Regenerate the entire app in its current state?'),
-      $.h('button', {
+  const Regenerator = $.vdom.Component(() => {
+    return $.vdom.h('div', { className: 'regenerator' },
+      $.vdom.h('div', {}, 'Regenerate the entire app in its current state?'),
+      $.vdom.h('button', {
         type: 'button',
         onClick: $.regeneratePage
       }, 'Regenerate the page from scratch!'),
-      $.h('button', {
+      $.vdom.h('button', {
         type: 'button',
         onClick: () => {
           $.regeneratePage();
@@ -829,7 +619,7 @@ div:hover > .add-button {
           }, 200);
         }
       }, 'Download as self-bootstrapping HTML document'),
-      $.h('button', {
+      $.vdom.h('button', {
         type: 'button',
         onClick: () => {
           $.regeneratePage();
@@ -862,7 +652,7 @@ div:hover > .add-button {
   link.click();
 },"regeneratePage":() => {
   const bootstrapCode = $.generateBootstrapCode();
-  const bootScript = $.createElement($.h('script', {
+  const bootScript = $.vdom.createElement($.vdom.h('script', {
     type: 'application/javascript'
   }));
   bootScript.innerHTML = '\n' + bootstrapCode + '\n';
@@ -916,5 +706,216 @@ div:hover > .add-button {
     '$.rehydrate(e);' +
     '$.initialize();' +
   '}())';
+},"parseFunc":(src) => {
+  const cleanSrc = src.replace(/\/\/[^\n]*\n|\/\*(.|\n)*\*\//g, ' ').trim();
+  if (
+    !/^function\s*\w*\s*\((.|\n)*\)\s*\{(.|\n)*\}$/.test(cleanSrc) &&
+    !/^(\((.|\n)*\)|\w+)\s*=>\s*(\{(.|\n)*\}|\((.|\n)*\))$/.test(cleanSrc)
+  ) { return null; }
+  try {
+    const func = eval('(' + src + ')');
+    return (typeof func === 'function') ? func : null;
+  } catch (ex) {
+    return null;
+  }
+},"vdom":[1]},{"h":(type, props, ...children) => {
+  props = props || {};
+  children = $.flatten(children);
+  if (typeof type === 'function') {
+    const constructor = type;
+    type = 'vdom-component';
+    return { type, props, children, constructor };
+  }
+  if (!(type && type.type)) {
+    return { type, props, children };
+  }
+  const allProps = { ...type.props, ...props };
+  if (props.className && type.props.className) {
+    allProps.className = type.props.className + ' ' + props.className;
+  }
+  if (props.style && type.props.style) {
+    allProps.style = type.props.style + ';' + props.style;
+  }
+  return { ...type, props: allProps, children: type.children.concat(children) };
+},"setBooleanProp":(element, name, value) => {
+  if (value) {
+    element.setAttribute(name, name);
+    element[name] = true;
+  } else {
+    element.removeAttribute(name);
+    element[name] = false;
+  }
+},"isEventProp":(name) => {
+  return /^on/.test(name);
+},"extractEventName":(name) => {
+  return name.slice(2).toLowerCase();
+},"isCustomProp":(name) => {
+  return ['key', 'component', 'initState'].includes(name);
+},"setProp":(element, name, value) => {
+  if ($.vdom.isCustomProp(name)) {
+    return;
+  } else if (name === 'className') {
+    element.setAttribute('class', value);
+  } else if (name === 'value') {
+    element.value = value;
+  } else if ($.vdom.isEventProp(name)) {
+    const event = (typeof value === 'function') ? value : null;
+    element[name.toLowerCase()] = event;
+  } else if (typeof value === 'boolean') {
+    $.vdom.setBooleanProp(element, name, value);
+  } else {
+    element.setAttribute(name, value);
+  }
+},"removeProp":(element, name, value) => {
+  if ($.vdom.isCustomProp(name)) {
+    return;
+  } else if (name === 'className') {
+    element.removeAttribute('class');
+  } else if (name === 'value') {
+    element.value = '';
+  } else if ($.vdom.isEventProp(name)) {
+    element[name.toLowerCase()] = null;
+  } else if (typeof value === 'boolean') {
+    $.vdom.setBooleanProp(element, name, false);
+  } else {
+    element.removeAttribute(name);
+  }
+},"setProps":(element, props) => {
+  Object.keys(props).forEach(name => {
+    $.vdom.setProp(element, name, props[name]);
+  });
+},"isNothing":(val) => {
+  return val === null || (typeof val === 'undefined');
+},"updateProp":(element, name, newVal, oldVal) => {
+  if ($.vdom.isNothing(newVal)) {
+    $.vdom.removeProp(element, name, oldVal);
+  } else if ($.vdom.isNothing(oldVal) || newVal !== oldVal) {
+    $.vdom.setProp(element, name, newVal);
+  } else if (name === 'value' && newVal !== element.value) {
+    $.vdom.setProp(element, name, newVal);
+  }
+},"updateProps":(element, newProps, oldProps = {}) => {
+  const props = Object.assign({}, newProps, oldProps);
+  Object.keys(props).forEach(name => {
+    $.vdom.updateProp(element, name, newProps[name], oldProps[name]);
+  });
+},"createElement":(node) => {
+  if (typeof node === 'string') {
+    return document.createTextNode(node);
+  } else if (node.type === 'vdom-component') {
+    node.component = node.constructor(node.props.initState);
+    return node.component.getElement();
+  }
+  const element = document.createElement(node.type);
+  $.vdom.setProps(element, node.props);
+  node.children
+    .map($.vdom.createElement)
+    .forEach(el => element.appendChild(el));
+  return element;
+},"hasChanged":(node1, node2) => {
+  return typeof node1 !== typeof node2 ||
+         typeof node1 === 'string' && node1 !== node2 ||
+         node1.type !== node2.type ||
+         node1.constructor !== node2.constructor;
+},"updateElement":(parent, newNode, oldNode, index = 0) => {
+  if ($.vdom.isNothing(oldNode)) {
+    if ($.vdom.isNothing(newNode)) { return; }
+    if (index < parent.childNodes.length) {
+      parent.insertBefore(
+        $.vdom.createElement(newNode),
+        parent.childNodes[index]
+      );
+    } else {
+      parent.appendChild(
+        $.vdom.createElement(newNode)
+      );
+    }
+  } else if ($.vdom.isNothing(newNode)) {
+    parent.removeChild(
+      parent.childNodes[index]
+    );
+  } else if ($.vdom.hasChanged(newNode, oldNode)) {
+    parent.replaceChild(
+      $.vdom.createElement(newNode),
+      parent.childNodes[index]
+    );
+  } else if (newNode.type === 'vdom-component') {
+    newNode.component = oldNode.component;
+    newNode.component.update();
+  } else if (newNode.type) {
+    $.vdom.updateProps(
+      parent.childNodes[index],
+      newNode.props,
+      oldNode.props
+    );
+    $.vdom.updateElements(
+      parent.childNodes[index],
+      newNode.children,
+      oldNode.children
+    );
+  }
+},"getKey":(node, i) => {
+  return (node && node.props && node.props.key) || '#' + i;
+},"matchNodes":(newNodes, oldNodes) => {
+  let ni = 0;
+  let pairs = [];
+  const newKeys = newNodes.map($.vdom.getKey);
+  oldNodes.forEach((on, oi) => {
+    let mi = newKeys.indexOf($.vdom.getKey(on, oi), ni);
+    if (mi < 0) {
+      pairs.push([null, on]);
+    } else {
+      pairs = pairs.concat(newNodes.slice(ni, mi).map(v => [v, null]));
+      pairs.push([newNodes[mi], on]);
+      ni = mi + 1;
+    }
+  });
+  if (ni < newNodes.length) {
+    pairs = pairs.concat(newNodes.slice(ni).map(v => [v, null]));
+  }
+  return pairs;
+},"updateElements":(parent, newNodes, oldNodes) => {
+  const nodePairs = $.vdom.matchNodes(newNodes, oldNodes);
+  let removedCount = 0;
+  nodePairs.forEach((pair, i) => {
+    const [n, o] = pair;
+    $.vdom.updateElement(parent, n, o, i - removedCount);
+    if ($.vdom.isNothing(n)) { removedCount++; }
+  });
+},"makeComponent":(render, initState, target) => {
+  let prevState = initState || {};
+  let prevContent = null;
+  const update = (state) => {
+    state = state || prevState;
+    let content = render(state, update);
+    if (Array.isArray(content)) {
+      content = $.flatten(content);
+      $.vdom.updateElements(target, content, prevContent || []);
+    } else {
+      $.vdom.updateElement(target, content, prevContent);
+    }
+    prevContent = content;
+    prevState = state;
+  };
+  const getElementFromRef = (ref) => (
+    (typeof ref === 'string'  ) ? document.querySelector(ref) :
+    (typeof ref === 'function') ? ref() : ref
+  );
+  const appendTo = (parent) => {
+    parent = getElementFromRef(parent);
+    if (parent && parent.appendChild) {
+      parent.appendChild(target);
+    }
+  }
+  target = getElementFromRef(target) ||
+    document.createElement('vdom-component');
+  update();
+  return { update, appendTo, getElement: () => target };
+},"Component":(render, defaultState) => {
+  return (initState, target) => $.vdom.makeComponent(
+    render,
+    initState || defaultState,
+    target
+  );
 }}];const $ = e[0];$.rehydrate(e);$.initialize();}())
 </script><body></body></html>
